@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ChronoStamp } from '~/stores/useAppStore';
 
 interface StampCardProps {
@@ -52,10 +52,18 @@ export function StampCard({
   };
 
   // Extract colors from image
-  const extractImageColors = (img: HTMLImageElement): ColorTheme => {
+  const extractImageColors = useCallback((img: HTMLImageElement): ColorTheme => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    if (!ctx) return colorTheme;
+    if (!ctx) return {
+      primary: '#92400e',
+      secondary: '#d97706', 
+      accent: '#fbbf24',
+      border: '#92400e',
+      background: '#fffdf5',
+      text: '#92400e',
+      textSecondary: '#b45309'
+    };
 
     canvas.width = img.width;
     canvas.height = img.height;
@@ -82,7 +90,15 @@ export function StampCard({
     // Find dominant color
     if (colors.length === 0) {
       // Return default theme if no colors found
-      return colorTheme;
+      return {
+        primary: '#92400e',
+        secondary: '#d97706', 
+        accent: '#fbbf24',
+        border: '#92400e',
+        background: '#fffdf5',
+        text: '#92400e',
+        textSecondary: '#b45309'
+      };
     }
     
     const avgColor = colors.reduce((acc, color) => ({
@@ -113,7 +129,7 @@ export function StampCard({
       text: primary,
       textSecondary: secondary
     };
-  };
+  }, []);
 
   // Helper functions for color conversion
   const rgbToHsl = (r: number, g: number, b: number) => {
@@ -122,7 +138,8 @@ export function StampCard({
     b /= 255;
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
 
     if (max !== min) {
       const d = max - min;
@@ -169,11 +186,11 @@ export function StampCard({
 
   // Handle image load
   useEffect(() => {
-    if (imgRef.current && imgRef.current.complete) {
+    if (imgRef.current?.complete) {
       const theme = extractImageColors(imgRef.current);
       setColorTheme(theme);
     }
-  }, [stamp.imageUrl]);
+  }, [stamp.imageUrl, extractImageColors]);
 
   const handleImageLoad = () => {
     if (imgRef.current) {

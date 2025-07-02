@@ -84,6 +84,6 @@ This project is part of the ChronoStamp Protocol. See the main repository for li
 
 - **Smart Contracts**: `chronostamp-contracts` - Contains all Solidity smart contracts and deployment scripts
 
-------
+---
 
 **Built with ❤️ for the decentralized future of digital memory**

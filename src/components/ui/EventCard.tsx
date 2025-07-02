@@ -22,6 +22,7 @@ interface ColorTheme {
 }
 
 export function EventCard({ event, size = 'md', onShare }: EventCardProps) {
+  const [isFlipped, setIsFlipped] = useState(false);
   const [colorTheme, setColorTheme] = useState<ColorTheme>({
     primary: '#92400e',
     secondary: '#d97706', 
@@ -37,6 +38,13 @@ export function EventCard({ event, size = 'md', onShare }: EventCardProps) {
     sm: 'w-48 h-64',
     md: 'w-64 h-80', 
     lg: 'w-80 h-96'
+  };
+
+  // Expanded size classes for flipped state
+  const expandedSizeClasses = {
+    sm: 'w-72 h-96',
+    md: 'w-96 h-[32rem]', 
+    lg: 'w-[28rem] h-[36rem]'
   };
 
   // Extract colors from image (same logic as StampCard)
@@ -197,17 +205,45 @@ export function EventCard({ event, size = 'md', onShare }: EventCardProps) {
   const claimRate = event.maxSupply ? Math.round((event.totalClaimed / event.maxSupply) * 100) : null;
 
   return (
-    <div className={`${sizeClasses[size]} relative group perspective-1000`}>
-      {/* Event Card with Perforation Border */}
-      <div className="w-full h-full p-2 bg-white rounded-lg shadow-2xl stamp-perforations hover:shadow-3xl transition-shadow duration-300">
-        {/* Inner Border Frame */}
+    <>
+      {/* Background overlay when flipped */}
+      {isFlipped && (
         <div 
-          className="w-full h-full border-4 border-double rounded-sm relative overflow-hidden"
-          style={{
-            borderColor: `${colorTheme.border}CC`,
-            background: `linear-gradient(135deg, ${colorTheme.background} 0%, ${colorTheme.accent}20 100%)`
-          }}
-        >
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-700"
+          onClick={() => setIsFlipped(false)}
+        />
+      )}
+      
+      {/* Positioning Wrapper */}
+      <div className={`
+        ${isFlipped ? 'fixed inset-0 z-50 flex items-center justify-center' : 'relative z-10'}
+        transition-all duration-700 ease-in-out
+      `}>
+        {/* Card Container */}
+        <div className={`
+          ${isFlipped ? expandedSizeClasses[size] : sizeClasses[size]} 
+          group perspective-1000 transition-all duration-700 ease-in-out
+        `}>
+          {/* Event Container with Perforation Border */}
+          <div 
+            className={`
+              relative w-full h-full transform-style-preserve-3d transition-transform duration-700 cursor-pointer
+              ${isFlipped ? 'rotate-y-180' : ''}
+            `}
+            onClick={() => setIsFlipped(!isFlipped)}
+          >
+        {/* Front Side - Event Card */}
+        <div className="absolute inset-0 backface-hidden">
+          {/* Event Card with Perforation Border */}
+          <div className="w-full h-full p-2 bg-white rounded-lg shadow-2xl stamp-perforations hover:shadow-3xl transition-shadow duration-300">
+            {/* Inner Border Frame */}
+            <div 
+              className="w-full h-full border-4 border-double rounded-sm relative overflow-hidden"
+              style={{
+                borderColor: `${colorTheme.border}CC`,
+                background: `linear-gradient(135deg, ${colorTheme.background} 0%, ${colorTheme.accent}20 100%)`
+              }}
+            >
           
           {/* Decorative Corner Flourishes */}
           <div 
@@ -431,18 +467,314 @@ export function EventCard({ event, size = 'md', onShare }: EventCardProps) {
             </div>
           </div>
 
-          {/* Watermark Pattern */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none">
+              {/* Watermark Pattern */}
+              <div className="absolute inset-0 opacity-5 pointer-events-none">
+                <div 
+                  className="w-full h-full bg-repeat" 
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${encodeURIComponent(colorTheme.primary)}' fill-opacity='1'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                    backgroundSize: '30px 30px'
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Back Side - Event Details Certificate */}
+        <div className="absolute inset-0 backface-hidden rotate-y-180">
+          <div className="w-full h-full p-3 bg-white rounded-lg shadow-2xl stamp-perforations">
             <div 
-              className="w-full h-full bg-repeat" 
+              className="w-full h-full border-4 border-double rounded-sm p-6 flex flex-col overflow-hidden"
               style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${encodeURIComponent(colorTheme.primary)}' fill-opacity='1'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                backgroundSize: '30px 30px'
+                borderColor: `${colorTheme.border}CC`,
+                background: `linear-gradient(135deg, ${colorTheme.background} 0%, ${colorTheme.accent}15 100%)`
               }}
-            ></div>
+            >
+              
+              {/* Close Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsFlipped(false);
+                }}
+                className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs hover:opacity-80 transition-opacity z-10"
+                style={{
+                  backgroundColor: colorTheme.accent,
+                  color: colorTheme.primary
+                }}
+              >
+                ✕
+              </button>
+
+              {/* Certificate Header */}
+              <div 
+                className="text-center pb-4 mb-6"
+                style={{ borderBottom: `1px solid ${colorTheme.accent}80` }}
+              >
+                <h2 
+                  className="font-serif text-2xl font-bold tracking-wide"
+                  style={{ color: colorTheme.text }}
+                >
+                  EVENT CERTIFICATE
+                </h2>
+                <p 
+                  className="text-sm tracking-wider font-medium"
+                  style={{ color: colorTheme.textSecondary }}
+                >
+                  CHRONOSTAMP EVENT DETAILS
+                </p>
+                <div 
+                  className="mt-2 text-xs"
+                  style={{ color: colorTheme.textSecondary }}
+                >
+                  Digital Event • Permanent Record • Created Memory
+                </div>
+              </div>
+
+              {/* Main Event Content */}
+              <div className="flex-1 space-y-4 text-sm overflow-y-auto" style={{ color: colorTheme.text }}>
+                
+                {/* Event Title Section */}
+                <div 
+                  className="rounded-lg p-4"
+                  style={{
+                    backgroundColor: `${colorTheme.accent}40`,
+                    border: `1px solid ${colorTheme.accent}80`
+                  }}
+                >
+                  <h3 
+                    className="font-serif text-xl font-bold mb-2"
+                    style={{ color: colorTheme.text }}
+                  >
+                    {event.name}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="font-bold" style={{ color: colorTheme.textSecondary }}>Event ID:</span>
+                      <p className="font-mono" style={{ color: colorTheme.text }}>#{event.id.toString().padStart(4, '0')}</p>
+                    </div>
+                    <div>
+                      <span className="font-bold" style={{ color: colorTheme.textSecondary }}>Organizer:</span>
+                      <p className="font-mono" style={{ color: colorTheme.text }}>{event.organizer.slice(0, 8)}...{event.organizer.slice(-6)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Event Description */}
+                <div>
+                  <h4 
+                    className="font-bold mb-2 flex items-center"
+                    style={{ color: colorTheme.textSecondary }}
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Event Description
+                  </h4>
+                  <p 
+                    className="text-sm leading-relaxed p-3 rounded"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                      border: `1px solid ${colorTheme.accent}80`,
+                      color: colorTheme.text
+                    }}
+                  >
+                    {event.description}
+                  </p>
+                </div>
+
+                {/* Event Statistics */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div 
+                    className="p-3 rounded"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                      border: `1px solid ${colorTheme.accent}80`
+                    }}
+                  >
+                    <h4 
+                      className="font-bold mb-1 flex items-center text-xs"
+                      style={{ color: colorTheme.textSecondary }}
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+                      </svg>
+                      Event Date
+                    </h4>
+                    <p className="text-xs font-medium" style={{ color: colorTheme.text }}>
+                      {new Date(event.eventDate).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </p>
+                  </div>
+                  <div 
+                    className="p-3 rounded"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                      border: `1px solid ${colorTheme.accent}80`
+                    }}
+                  >
+                    <h4 
+                      className="font-bold mb-1 flex items-center text-xs"
+                      style={{ color: colorTheme.textSecondary }}
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
+                      </svg>
+                      Event Created
+                    </h4>
+                    <p className="text-xs font-medium" style={{ color: colorTheme.text }}>
+                      {new Date(event.createdAt).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: colorTheme.textSecondary }}>
+                      {Math.floor((Date.now() - new Date(event.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days ago
+                    </p>
+                  </div>
+                </div>
+
+                {/* Event Statistics Section */}
+                <div 
+                  className="rounded-lg p-4"
+                  style={{
+                    background: `linear-gradient(135deg, ${colorTheme.accent}60 0%, ${colorTheme.secondary}40 100%)`,
+                    border: `1px solid ${colorTheme.accent}`
+                  }}
+                >
+                  <h4 
+                    className="font-bold mb-3 flex items-center"
+                    style={{ color: colorTheme.textSecondary }}
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                    </svg>
+                    Event Statistics
+                  </h4>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span style={{ color: colorTheme.textSecondary }}>Total Claimed:</span>
+                      <span className="font-medium" style={{ color: colorTheme.text }}>{event.totalClaimed}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span style={{ color: colorTheme.textSecondary }}>Max Supply:</span>
+                      <span className="font-medium" style={{ color: colorTheme.text }}>{event.maxSupply ?? 'Unlimited'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span style={{ color: colorTheme.textSecondary }}>Remaining:</span>
+                      <span className="font-medium" style={{ color: colorTheme.text }}>
+                        {event.maxSupply ? (event.maxSupply - event.totalClaimed) : '∞'}
+                      </span>
+                    </div>
+                    {claimRate !== null && (
+                      <div className="flex justify-between">
+                        <span style={{ color: colorTheme.textSecondary }}>Claim Rate:</span>
+                        <span className="font-medium" style={{ color: colorTheme.text }}>{claimRate}%</span>
+                      </div>
+                    )}
+                    <div className="mt-3">
+                      <span style={{ color: colorTheme.textSecondary }}>Contract Address:</span>
+                      <p 
+                        className="font-mono text-xs break-all mt-1 p-2 rounded"
+                        style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                          color: colorTheme.text
+                        }}
+                      >
+                        {event.contractAddress}
+                      </p>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void navigator.clipboard.writeText(event.contractAddress);
+                          alert('Contract address copied!');
+                        }}
+                        className="mt-2 px-3 py-1 rounded text-xs font-medium transition-colors"
+                        style={{
+                          backgroundColor: colorTheme.accent,
+                          color: colorTheme.primary
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = colorTheme.secondary;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = colorTheme.accent;
+                        }}
+                      >
+                        📋 Copy Contract Address
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Certificate Footer - Minimal */}
+              <div 
+                className="text-center pt-2 mt-2"
+                style={{ borderTop: `1px solid ${colorTheme.accent}60` }}
+              >
+                <div className="flex items-center justify-center space-x-2 text-xs" style={{ color: colorTheme.textSecondary }}>
+                  <span>✨</span>
+                  <span className="font-mono">Permanent • Verifiable • Collectible</span>
+                  <span>✨</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+          
+          {/* Flip Instruction */}
+          {!isFlipped && (
+            <div className="absolute -bottom-6 left-0 right-0 text-center text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+              Click to flip
+            </div>
+          )}
+        </div>
+      </div>
+
+      <style jsx>{`
+        .stamp-perforations {
+          position: relative;
+        }
+        
+        .stamp-perforations::before {
+          content: '';
+          position: absolute;
+          inset: -1px;
+          background: 
+            radial-gradient(circle at 4px 4px, transparent 1px, currentColor 1px, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 4px 4px, transparent 1px, currentColor 1px, currentColor 2px, transparent 2px);
+          background-size: 8px 8px;
+          background-position: 0 0, 4px 4px;
+          opacity: 0.4;
+          border-radius: inherit;
+          color: #6366f1;
+        }
+
+        .perspective-1000 {
+          perspective: 1000px;
+        }
+
+        .transform-style-preserve-3d {
+          transform-style: preserve-3d;
+        }
+
+        .backface-hidden {
+          backface-visibility: hidden;
+        }
+
+        .rotate-y-180 {
+          transform: rotateY(180deg);
+        }
+      `}</style>
+    </>
   );
 }

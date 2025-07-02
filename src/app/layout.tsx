@@ -3,6 +3,7 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Web3Provider } from "~/providers/Web3Provider";
+import { Footer } from "~/components/layout/Footer";
 
 export const metadata: Metadata = {
   title: "ChronoStamp Protocol",
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body>
         <Web3Provider>
           {children}
+          <Footer />
         </Web3Provider>
       </body>
     </html>

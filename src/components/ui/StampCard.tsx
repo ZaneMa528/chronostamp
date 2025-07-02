@@ -566,16 +566,12 @@ export function StampCard({
                 </div>
               </div>
 
-              {/* Certificate Footer */}
+              {/* Certificate Footer - Minimal */}
               <div 
-                className="text-center pt-4 mt-4"
-                style={{ borderTop: `1px solid ${colorTheme.accent}80` }}
+                className="text-center pt-2 mt-2"
+                style={{ borderTop: `1px solid ${colorTheme.accent}60` }}
               >
-                <div className="text-xs leading-relaxed" style={{ color: colorTheme.textSecondary }}>
-                  <p className="font-medium">This ChronoStamp certifies your participation in the above event</p>
-                  <p>and serves as a permanent digital artifact of this precious memory.</p>
-                </div>
-                <div className="mt-3 flex items-center justify-center space-x-2 text-xs" style={{ color: colorTheme.textSecondary }}>
+                <div className="flex items-center justify-center space-x-2 text-xs" style={{ color: colorTheme.textSecondary }}>
                   <span>✨</span>
                   <span className="font-mono">Immutable • Verifiable • Yours Forever</span>
                   <span>✨</span>

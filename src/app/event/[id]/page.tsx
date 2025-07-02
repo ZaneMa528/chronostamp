@@ -7,7 +7,7 @@ export default async function EventDetailPage(props: {
   const { id } = await props.params;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
+    <main className="bg-gradient-to-br from-indigo-50 to-purple-50">
       <Header />
       <EventDetailSection eventId={id} />
     </main>

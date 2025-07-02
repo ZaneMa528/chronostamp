@@ -70,12 +70,12 @@ export function ConnectWallet() {
               }
 
               return (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <Button
                     onClick={openChainModal}
                     variant="outline"
                     size="sm"
-                    className="font-mono"
+                    className="font-mono text-xs sm:text-sm hidden sm:inline-flex"
                   >
                     {chain.hasIcon && (
                       <div
@@ -105,12 +105,14 @@ export function ConnectWallet() {
                     onClick={openAccountModal}
                     variant="outline"
                     size="sm"
-                    className="font-mono"
+                    className="font-mono text-xs sm:text-sm"
                   >
-                    {account.displayName}
-                    {account.displayBalance
-                      ? ` (${account.displayBalance})`
-                      : ''}
+                    <span className="block sm:hidden">
+                      {account.displayName?.slice(0, 6)}...
+                    </span>
+                    <span className="hidden sm:block">
+                      {account.displayName}
+                    </span>
                   </Button>
                 </div>
               );

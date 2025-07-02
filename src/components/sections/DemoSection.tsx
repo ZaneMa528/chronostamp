@@ -39,29 +39,29 @@ const demoEvents = [
 
 export function DemoSection() {
   return (
-    <section className="py-16 bg-gradient-to-r from-purple-100 to-indigo-100">
+    <section className="py-8 sm:py-12 md:py-16 bg-gradient-to-r from-purple-100 to-indigo-100">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
           Try It Now!
         </h2>
-        <p className="text-lg text-gray-600 mb-8">
+        <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8">
           Test the claiming experience with these special demo codes
         </p>
         
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto">
           {demoEvents.map((event) => (
             <Card key={event.code} className={`${event.borderColor} transition-colors hover:shadow-lg`}>
-              <CardContent className="p-6 text-center">
-                <div className={`w-12 h-12 ${event.bgColor} rounded-full mx-auto mb-3 flex items-center justify-center`}>
-                  <span className="text-white font-bold">{event.icon}</span>
+              <CardContent className="p-4 sm:p-6 text-center">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 ${event.bgColor} rounded-full mx-auto mb-3 flex items-center justify-center`}>
+                  <span className="text-white font-bold text-lg sm:text-xl">{event.icon}</span>
                 </div>
-                <h3 className="font-bold text-lg mb-2">{event.name}</h3>
-                <code className={`${event.codeColor} px-3 py-1 rounded font-mono`}>
+                <h3 className="font-bold text-base sm:text-lg mb-2">{event.name}</h3>
+                <code className={`${event.codeColor} px-2 sm:px-3 py-1 rounded font-mono text-xs sm:text-sm`}>
                   {event.code}
                 </code>
-                <p className="text-sm text-gray-600 mt-2 mb-4">{event.description}</p>
+                <p className="text-xs sm:text-sm text-gray-600 mt-2 mb-3 sm:mb-4">{event.description}</p>
                 <Link href={`/event/${event.id}`}>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
                     View Details
                   </Button>
                 </Link>
@@ -70,9 +70,12 @@ export function DemoSection() {
           ))}
         </div>
         
-        <p className="text-sm text-gray-500 mt-8">
-          Copy any demo code above and paste it in the claim form to test the experience.<br/>
-          <strong>Note:</strong> When creating real events, you set your own secret codes that are only revealed to attendees at the venue.
+        <p className="text-xs sm:text-sm text-gray-500 mt-6 sm:mt-8 px-4 leading-relaxed">
+          Copy any demo code above and paste it in the claim form to test the experience.
+          <br className="hidden sm:block"/>
+          <span className="block sm:inline mt-1 sm:mt-0">
+            <strong>Note:</strong> When creating real events, you set your own secret codes that are only revealed to attendees at the venue.
+          </span>
         </p>
       </div>
     </section>

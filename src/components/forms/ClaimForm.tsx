@@ -46,14 +46,14 @@ export function ClaimForm() {
   };
 
   return (
-    <Card className="max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Claim Your ChronoStamp</CardTitle>
-        <CardDescription>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="pb-4 sm:pb-6">
+        <CardTitle className="text-lg sm:text-xl md:text-2xl">Claim Your ChronoStamp</CardTitle>
+        <CardDescription className="text-sm sm:text-base">
           Enter your event code to claim your digital memory
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6">
         <div>
           <label htmlFor="eventCode" className="block text-sm font-medium text-gray-700 mb-2">
             Event Code
@@ -64,7 +64,7 @@ export function ClaimForm() {
             value={eventCode}
             onChange={(e) => setEventCode(e.target.value)}
             disabled={ui.isLoading}
-            className="text-center text-lg font-mono tracking-wider"
+            className="text-center text-base sm:text-lg font-mono tracking-wider h-12 sm:h-14"
           />
           <p className="text-xs text-gray-500 mt-1 text-center">
             Event codes are provided by organizers at events
@@ -74,22 +74,22 @@ export function ClaimForm() {
         <Button 
           onClick={handleClaim}
           disabled={ui.isLoading || !user.isConnected || !eventCode.trim()}
-          className="w-full"
+          className="w-full h-12 sm:h-14 text-sm sm:text-base"
           size="lg"
         >
           {ui.isLoading ? ui.loadingMessage : 'Claim My ChronoStamp'}
         </Button>
         
         {!user.isConnected ? (
-          <p className="text-sm text-gray-500 text-center">
+          <p className="text-xs sm:text-sm text-gray-500 text-center">
             👆 Connect your wallet above to claim stamps
           </p>
         ) : !eventCode.trim() ? (
-          <p className="text-sm text-gray-400 text-center">
+          <p className="text-xs sm:text-sm text-gray-400 text-center">
             Enter an event code to continue
           </p>
         ) : (
-          <p className="text-sm text-green-600 text-center">
+          <p className="text-xs sm:text-sm text-green-600 text-center">
             ✓ Ready to claim your ChronoStamp!
           </p>
         )}

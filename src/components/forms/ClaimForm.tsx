@@ -50,7 +50,7 @@ export function ClaimForm() {
           </label>
           <Input
             id="eventCode"
-            placeholder="Enter your event code (e.g., DEMO2024)"
+            placeholder="e.g., DEMO2024"
             value={eventCode}
             onChange={(e) => setEventCode(e.target.value)}
             disabled={ui.isLoading}

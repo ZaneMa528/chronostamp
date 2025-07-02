@@ -1,6 +1,6 @@
 import type { Event, ChronoStamp } from '~/stores/useAppStore';
 
-const API_BASE = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : '';
+const API_BASE = '';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -54,6 +54,10 @@ export class ApiClient {
   // Events API
   static async getEvents(): Promise<ApiResponse<Event[]>> {
     return this.request<Event[]>('/events');
+  }
+
+  static async getUserCreatedEvents(userAddress: string): Promise<ApiResponse<Event[]>> {
+    return this.request<Event[]>(`/events?organizer=${encodeURIComponent(userAddress)}`);
   }
 
   static async getEvent(id: string): Promise<ApiResponse<Event & { 

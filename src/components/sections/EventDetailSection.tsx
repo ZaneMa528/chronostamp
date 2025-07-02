@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/Card';
 import { Button } from '~/components/ui/Button';
 import { Badge } from '~/components/ui/Badge';
+import { Input } from '~/components/ui/Input';
 import { useAppStore } from '~/stores/useAppStore';
 import { ApiClient } from '~/lib/api';
 import type { Event } from '~/stores/useAppStore';
@@ -32,6 +33,7 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
   const [event, setEvent] = useState<EventWithDetails | null>(null);
   const [isLoadingEvent, setIsLoadingEvent] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [eventCode, setEventCode] = useState('');
 
   const loadEventDetails = useCallback(async () => {
     try {
@@ -63,10 +65,15 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
       return;
     }
 
+    if (!eventCode.trim()) {
+      alert('Please enter the event code provided at the event');
+      return;
+    }
+
     try {
       setLoading(true, 'Claiming your ChronoStamp...');
       
-      const response = await ApiClient.claimStamp(event.eventCode, user.address);
+      const response = await ApiClient.claimStamp(eventCode.toUpperCase(), user.address);
       
       if (!response.success) {
         throw new Error(response.message ?? response.error ?? 'Failed to claim ChronoStamp');
@@ -75,8 +82,9 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
       if (response.data) {
         addOwnedStamp(response.data.stamp);
         alert(`ChronoStamp claimed successfully!\\nTransaction: ${response.data.transaction.hash.slice(0, 10)}...`);
-        // Refresh event details to update stats
+        // Refresh event details to update stats and clear the input
         void loadEventDetails();
+        setEventCode('');
       }
     } catch (error) {
       alert('Failed to claim ChronoStamp: ' + (error as Error).message);
@@ -281,9 +289,15 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
             </CardContent>
           </Card>
 
-          {/* Claim Button */}
+          {/* Claim Section */}
           <Card>
-            <CardContent className="p-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Claim Your ChronoStamp</CardTitle>
+              <CardDescription>
+                Enter the secret code provided at the event to claim your digital memory
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {!user.isConnected ? (
                 <div className="text-center">
                   <p className="text-gray-600 mb-4">Connect your wallet to claim this ChronoStamp</p>
@@ -299,19 +313,43 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
                   </Button>
                 </div>
               ) : (
-                <div className="text-center">
-                  <p className="text-gray-600 mb-4">
-                    Claim your permanent digital memory of this event
-                  </p>
+                <>
+                  <div>
+                    <label htmlFor="eventCode" className="block text-sm font-medium text-gray-700 mb-2">
+                      Event Code
+                    </label>
+                    <Input
+                      id="eventCode"
+                      placeholder="Enter the secret code from the event"
+                      value={eventCode}
+                      onChange={(e) => setEventCode(e.target.value.toUpperCase())}
+                      disabled={ui.isLoading}
+                      className="text-center text-lg font-mono tracking-wider"
+                    />
+                    <p className="text-xs text-gray-500 mt-1 text-center">
+                      The event organizer will provide this code during the event
+                    </p>
+                  </div>
+                  
                   <Button 
                     onClick={handleClaimStamp}
-                    disabled={ui.isLoading}
+                    disabled={ui.isLoading || !eventCode.trim()}
                     className="w-full bg-blue-600 hover:bg-blue-700"
                     size="lg"
                   >
                     {ui.isLoading ? ui.loadingMessage : 'Claim ChronoStamp'}
                   </Button>
-                </div>
+                  
+                  {!eventCode.trim() ? (
+                    <p className="text-sm text-gray-400 text-center">
+                      Enter the event code to continue
+                    </p>
+                  ) : (
+                    <p className="text-sm text-green-600 text-center">
+                      ✓ Ready to claim your ChronoStamp!
+                    </p>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>

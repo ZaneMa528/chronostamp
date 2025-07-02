@@ -665,7 +665,7 @@ export function EventCard({ event, size = 'md', onShare }: EventCardProps) {
                     </div>
                     <div className="flex justify-between">
                       <span style={{ color: colorTheme.textSecondary }}>Max Supply:</span>
-                      <span className="font-medium" style={{ color: colorTheme.text }}>{event.maxSupply || 'Unlimited'}</span>
+                      <span className="font-medium" style={{ color: colorTheme.text }}>{event.maxSupply ?? 'Unlimited'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span style={{ color: colorTheme.textSecondary }}>Remaining:</span>

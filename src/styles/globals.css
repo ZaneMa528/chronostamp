@@ -4,3 +4,50 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
+
+/* Postage Stamp Perforations */
+.stamp-perforations {
+  position: relative;
+}
+
+.stamp-perforations::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: 
+    radial-gradient(circle at 10px 10px, transparent 3px, white 3px, white 7px, transparent 7px),
+    radial-gradient(circle at 10px 10px, transparent 3px, white 3px, white 7px, transparent 7px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  border-radius: 12px;
+  z-index: -1;
+}
+
+/* 3D Transform Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Custom Colors for Vintage Stamp */
+.cream-50 {
+  background-color: #fefdf8;
+}
+
+.amber-25 {
+  background-color: #fffdf5;
+}

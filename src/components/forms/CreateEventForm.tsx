@@ -13,6 +13,7 @@ import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
 import { DatePicker } from "~/components/ui/DatePicker";
 import { useAppStore } from "~/stores/useAppStore";
+import { ApiClient } from "~/lib/api";
 import Image from "next/image";
 
 interface CreateEventFormProps {
@@ -34,7 +35,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   const [imagePreview, setImagePreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { user, mockCreateEvent, setLoading, ui } = useAppStore();
+  const { user, setLoading, ui } = useAppStore();
 
   const handleInputChange = (field: string, value: string) => {
     const newFormData = { ...formData, [field]: value };
@@ -84,7 +85,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
     try {
       setLoading(true, "Creating your ChronoStamp event...");
 
-      await mockCreateEvent({
+      const response = await ApiClient.createEvent({
         name: formData.name,
         description: formData.description,
         imageUrl: imagePreview,
@@ -96,7 +97,11 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           : undefined,
       });
 
-      alert("ChronoStamp event created successfully!");
+      if (!response.success) {
+        throw new Error(response.message ?? response.error ?? 'Failed to create event');
+      }
+
+      alert(`ChronoStamp event created successfully!\nEvent Code: ${response.data?.eventCode}`);
 
       // Reset form
       setFormData({ name: "", description: "", eventDate: "", maxSupply: "" });

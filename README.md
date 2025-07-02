@@ -1,29 +1,89 @@
-# Create T3 App
+# ChronoStamp Protocol - Frontend Application
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A Next.js-based decentralized application (DApp) for creating and claiming ChronoStamp NFTs - permanent, verifiable digital artifacts of life experiences.
 
-## What's next? How do I make an app with this?
+## 🌟 Overview
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+ChronoStamp transforms ephemeral life experiences into permanent, verifiable, and user-owned digital artifacts. This frontend application will serve as the primary interface for both Event Organizers and Attendees, providing a seamless Web3 experience for creating and claiming Proof of Attendance Protocol (POAP) tokens.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## 🏗️ Architecture
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+This application will combine a client-side user interface with a lightweight, secure backend API:
 
-## Learn More
+- **Frontend (React/Next.js)**: User-friendly UI for wallet connections, event creation, and stamp claiming
+- **API Routes (Serverless Functions)**: Trusted off-chain oracle for signature generation
+- **Web3 Integration**: Client-side blockchain interactions using Ethers.js
+- **IPFS Storage**: Decentralized storage for artwork and metadata
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## 🛠️ Tech Stack
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+- **Framework**: Next.js with TypeScript
+- **Web3 Libraries**:
+  - Ethers.js for smart contract interactions
+  - RainbowKit for wallet connections
+- **Styling**: Tailwind CSS
+- **Database**: Drizzle ORM
+- **Storage**: IPFS via Pinata
+- **Deployment**: Vercel
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+## 🚀 Getting Started
 
-## How do I deploy this?
+### Prerequisites
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- Node.js 18+ and pnpm
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd chronostamp-app
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   pnpm install
+   ```
+
+3. **Run the development server**
+
+   ```bash
+   pnpm dev
+   ```
+
+4. **Open your browser**
+
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 📁 Project Structure
+
+```
+src/
+├── app/                 # Next.js app router pages
+│   ├── page.tsx        # Homepage
+│   └── layout.tsx      # Root layout
+├── server/            # Database configuration and schemas
+└── styles/            # Global styles and Tailwind CSS
+```
+
+## 🤝 Contributing
+
+1. Clone the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is part of the ChronoStamp Protocol. See the main repository for license details.
+
+## 🔗 Related Repositories
+
+- **Smart Contracts**: `chronostamp-contracts` - Contains all Solidity smart contracts and deployment scripts
+
+---
+
+**Built with ❤️ for the decentralized future of digital memory**

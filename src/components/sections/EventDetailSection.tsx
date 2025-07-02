@@ -1,0 +1,344 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/Card';
+import { Button } from '~/components/ui/Button';
+import { Badge } from '~/components/ui/Badge';
+import { useAppStore } from '~/stores/useAppStore';
+import { ApiClient } from '~/lib/api';
+import type { Event } from '~/stores/useAppStore';
+
+interface EventDetailSectionProps {
+  eventId: string;
+}
+
+interface EventWithDetails extends Event {
+  stats: {
+    totalClaimed: number;
+    maxSupply?: number;
+    remainingSupply?: number | null;
+    claimRate?: number | null;
+  };
+  metadata: {
+    blockchain: string;
+    tokenStandard: string;
+    royalty: string;
+    ipfsHash: string;
+  };
+}
+
+export function EventDetailSection({ eventId }: EventDetailSectionProps) {
+  const { user, addOwnedStamp, setLoading, ui } = useAppStore();
+  const [event, setEvent] = useState<EventWithDetails | null>(null);
+  const [isLoadingEvent, setIsLoadingEvent] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadEventDetails = useCallback(async () => {
+    try {
+      setIsLoadingEvent(true);
+      setError(null);
+      
+      const response = await ApiClient.getEvent(eventId);
+      
+      if (response.success && response.data) {
+        setEvent(response.data);
+      } else {
+        setError(response.error ?? 'Failed to load event details');
+      }
+    } catch (error) {
+      setError('Error loading event details');
+      console.error('Error loading event details:', error);
+    } finally {
+      setIsLoadingEvent(false);
+    }
+  }, [eventId]);
+
+  useEffect(() => {
+    void loadEventDetails();
+  }, [eventId, loadEventDetails]);
+
+  const handleClaimStamp = async () => {
+    if (!event || !user.isConnected || !user.address) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    try {
+      setLoading(true, 'Claiming your ChronoStamp...');
+      
+      const response = await ApiClient.claimStamp(event.eventCode, user.address);
+      
+      if (!response.success) {
+        throw new Error(response.message ?? response.error ?? 'Failed to claim ChronoStamp');
+      }
+
+      if (response.data) {
+        addOwnedStamp(response.data.stamp);
+        alert(`ChronoStamp claimed successfully!\\nTransaction: ${response.data.transaction.hash.slice(0, 10)}...`);
+        // Refresh event details to update stats
+        void loadEventDetails();
+      }
+    } catch (error) {
+      alert('Failed to claim ChronoStamp: ' + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isLoadingEvent) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600 mt-4">Loading event details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Event Not Found</h1>
+          <p className="text-gray-600 mb-6">{error ?? 'The event you are looking for does not exist.'}</p>
+          <Button onClick={() => window.location.href = '/'}>
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const isEventActive = new Date(event.eventDate) > new Date();
+  const isSoldOut = event.stats.maxSupply && event.stats.totalClaimed >= event.stats.maxSupply;
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Back Navigation */}
+      <div className="mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => void window.history.back()}
+          className="flex items-center space-x-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Back</span>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Event Image */}
+        <div className="space-y-6">
+          <div className="aspect-square rounded-lg overflow-hidden shadow-lg">
+            <img 
+              src={event.imageUrl} 
+              alt={event.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Metadata Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Technical Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Blockchain:</span>
+                <span className="font-medium">{event.metadata.blockchain}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Token Standard:</span>
+                <span className="font-medium">{event.metadata.tokenStandard}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Royalty:</span>
+                <span className="font-medium">{event.metadata.royalty}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Contract:</span>
+                <span className="font-mono text-sm">
+                  {event.contractAddress.slice(0, 6)}...{event.contractAddress.slice(-4)}
+                </span>
+              </div>
+              <div className="pt-2 border-t">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(event.contractAddress);
+                    alert('Contract address copied!');
+                  }}
+                >
+                  Copy Contract Address
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Event Details */}
+        <div className="space-y-6">
+          {/* Header */}
+          <div>
+            <div className="flex items-center space-x-3 mb-3">
+              <h1 className="text-3xl font-bold text-gray-900">{event.name}</h1>
+              {isSoldOut && <Badge variant="destructive">Sold Out</Badge>}
+              {!isEventActive && !isSoldOut && <Badge variant="secondary">Past Event</Badge>}
+              {isEventActive && !isSoldOut && <Badge variant="default">Active</Badge>}
+            </div>
+            <p className="text-lg text-gray-600 mb-4">{event.description}</p>
+            
+            <div className="flex items-center space-x-6 text-sm text-gray-600">
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{new Date(event.eventDate).toLocaleDateString()} at {new Date(event.eventDate).toLocaleTimeString()}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-blue-600">{event.stats.totalClaimed}</div>
+                <div className="text-sm text-gray-600">Total Claimed</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {event.stats.maxSupply ? event.stats.remainingSupply ?? 0 : '∞'}
+                </div>
+                <div className="text-sm text-gray-600">Remaining</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Progress Bar */}
+          {event.stats.maxSupply && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Claim Progress</span>
+                <span>{event.stats.claimRate ?? 0}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${event.stats.claimRate ?? 0}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+
+          {/* How to Claim */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">How to Claim</CardTitle>
+              <CardDescription>Get your ChronoStamp at the event</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-sm text-gray-600">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-xs font-bold">1</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Attend the Event</p>
+                    <p>Be present at the event location during the specified time</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-xs font-bold">2</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Get the Secret Code</p>
+                    <p>Event organizers will reveal the claim code during the event</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-xs font-bold">3</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Claim Your ChronoStamp</p>
+                    <p>Use the code on our claim page to mint your digital memory</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Claim Button */}
+          <Card>
+            <CardContent className="p-6">
+              {!user.isConnected ? (
+                <div className="text-center">
+                  <p className="text-gray-600 mb-4">Connect your wallet to claim this ChronoStamp</p>
+                  <Button disabled className="w-full" size="lg">
+                    Connect Wallet First
+                  </Button>
+                </div>
+              ) : isSoldOut ? (
+                <div className="text-center">
+                  <p className="text-red-600 mb-4">This event has reached its maximum supply</p>
+                  <Button disabled className="w-full" size="lg">
+                    Sold Out
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <p className="text-gray-600 mb-4">
+                    Claim your permanent digital memory of this event
+                  </p>
+                  <Button 
+                    onClick={handleClaimStamp}
+                    disabled={ui.isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    size="lg"
+                  >
+                    {ui.isLoading ? ui.loadingMessage : 'Claim ChronoStamp'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Organizer Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Event Organizer</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">
+                    {event.organizer.slice(2, 4).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <div className="font-medium">Event Organizer</div>
+                  <div className="text-sm text-gray-600 font-mono">
+                    {event.organizer.slice(0, 6)}...{event.organizer.slice(-4)}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

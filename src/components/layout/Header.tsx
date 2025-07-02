@@ -11,6 +11,7 @@ export function Header() {
   const navItems = [
     { href: "/", label: "Claim" },
     { href: "/create", label: "Create" },
+    { href: "/profile", label: "Profile" },
   ];
 
   return (

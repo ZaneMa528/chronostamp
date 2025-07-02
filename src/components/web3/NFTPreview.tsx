@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
 import { Card, CardContent } from "~/components/ui/Card";
+import Image from "next/image";
 
 interface NFTPreviewProps {
   data: {
@@ -14,10 +15,10 @@ export function NFTPreview({ data }: NFTPreviewProps) {
   const hasData = data.name || data.description || data.imageUrl;
 
   return (
-    <Card className="w-full max-w-sm mx-auto bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
+    <Card className="mx-auto w-full max-w-sm border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50">
       <CardContent className="p-6">
-        <div className="text-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="mb-4 text-center">
+          <h3 className="mb-2 text-lg font-semibold text-gray-900">
             Live Preview
           </h3>
           <p className="text-sm text-gray-600">
@@ -26,19 +27,21 @@ export function NFTPreview({ data }: NFTPreviewProps) {
         </div>
 
         {hasData ? (
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
+          <div className="rounded-lg border bg-white p-4 shadow-sm">
             {/* NFT Image */}
-            <div className="aspect-square bg-gray-100 rounded-lg mb-4 overflow-hidden">
+            <div className="mb-4 aspect-square overflow-hidden rounded-lg bg-gray-100">
               {data.imageUrl ? (
-                <img
+                <Image
                   src={data.imageUrl}
-                  alt={data.name || 'Event preview'}
-                  className="w-full h-full object-cover"
+                  alt={data.name || "Event preview"}
+                  width={500}
+                  height={500}
+                  className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                <div className="flex h-full w-full items-center justify-center text-gray-400">
                   <div className="text-center">
-                    <div className="text-4xl mb-2">🖼️</div>
+                    <div className="mb-2 text-4xl">🖼️</div>
                     <p className="text-sm">Upload an image</p>
                   </div>
                 </div>
@@ -48,28 +51,28 @@ export function NFTPreview({ data }: NFTPreviewProps) {
             {/* NFT Details */}
             <div className="space-y-3">
               <div>
-                <h4 className="font-semibold text-gray-900 text-lg">
-                  {data.name || 'Event Name'}
+                <h4 className="text-lg font-semibold text-gray-900">
+                  {data.name || "Event Name"}
                 </h4>
-                <p className="text-xs text-purple-600 font-medium">
+                <p className="text-xs font-medium text-purple-600">
                   ChronoStamp NFT
                 </p>
               </div>
 
               <div>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {data.description || 'Event description will appear here...'}
+                <p className="text-sm leading-relaxed text-gray-600">
+                  {data.description || "Event description will appear here..."}
                 </p>
               </div>
 
               {/* Mock NFT Properties */}
-              <div className="border-t pt-3 mt-3">
+              <div className="mt-3 border-t pt-3">
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="bg-gray-50 rounded p-2">
+                  <div className="rounded bg-gray-50 p-2">
                     <p className="text-gray-500">Token ID</p>
                     <p className="font-mono">#1234</p>
                   </div>
-                  <div className="bg-gray-50 rounded p-2">
+                  <div className="rounded bg-gray-50 p-2">
                     <p className="text-gray-500">Blockchain</p>
                     <p className="font-medium">Polygon</p>
                   </div>
@@ -78,16 +81,16 @@ export function NFTPreview({ data }: NFTPreviewProps) {
 
               {/* Mock Rarity Badge */}
               <div className="flex justify-center">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
                   ✨ Attendance Proof
                 </span>
               </div>
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg p-8 shadow-sm border text-center">
-            <div className="text-gray-400 mb-4">
-              <div className="text-6xl mb-4">📝</div>
+          <div className="rounded-lg border bg-white p-8 text-center shadow-sm">
+            <div className="mb-4 text-gray-400">
+              <div className="mb-4 text-6xl">📝</div>
               <p className="text-sm">
                 Fill in the form to see your ChronoStamp preview
               </p>

@@ -1,9 +1,12 @@
 'use client';
 
+import Link from "next/link";
 import { Card, CardContent } from "~/components/ui/Card";
+import { Button } from "~/components/ui/Button";
 
 const demoEvents = [
   {
+    id: "1",
     name: "DevConf 2024",
     code: "DEVCONF2024",
     description: "Developer Conference",
@@ -13,6 +16,7 @@ const demoEvents = [
     codeColor: "bg-purple-100 text-purple-700"
   },
   {
+    id: "2",
     name: "Web3 Summit",
     code: "WEB3SUMMIT", 
     description: "Blockchain Conference",
@@ -22,6 +26,7 @@ const demoEvents = [
     codeColor: "bg-indigo-100 text-indigo-700"
   },
   {
+    id: "3",
     name: "AI Workshop",
     code: "AIWORKSHOP",
     description: "Machine Learning Lab", 
@@ -40,12 +45,12 @@ export function DemoSection() {
           Try It Now!
         </h2>
         <p className="text-lg text-gray-600 mb-8">
-          Test the claiming experience with these demo event codes
+          Test the claiming experience with these special demo codes
         </p>
         
         <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {demoEvents.map((event) => (
-            <Card key={event.code} className={`${event.borderColor} transition-colors`}>
+            <Card key={event.code} className={`${event.borderColor} transition-colors hover:shadow-lg`}>
               <CardContent className="p-6 text-center">
                 <div className={`w-12 h-12 ${event.bgColor} rounded-full mx-auto mb-3 flex items-center justify-center`}>
                   <span className="text-white font-bold">{event.icon}</span>
@@ -54,14 +59,20 @@ export function DemoSection() {
                 <code className={`${event.codeColor} px-3 py-1 rounded font-mono`}>
                   {event.code}
                 </code>
-                <p className="text-sm text-gray-600 mt-2">{event.description}</p>
+                <p className="text-sm text-gray-600 mt-2 mb-4">{event.description}</p>
+                <Link href={`/event/${event.id}`}>
+                  <Button variant="outline" size="sm" className="w-full">
+                    View Details
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           ))}
         </div>
         
         <p className="text-sm text-gray-500 mt-8">
-          Copy any code above and paste it in the claim form to test the experience
+          Copy any demo code above and paste it in the claim form to test the experience.<br/>
+          <strong>Note:</strong> When creating real events, you set your own secret codes that are only revealed to attendees at the venue.
         </p>
       </div>
     </section>

@@ -8,10 +8,7 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import {
-  mainnet,
-  polygon,
-  sepolia,
-  polygonAmoy,
+  arbitrum,
 } from 'wagmi/chains';
 import {
   QueryClientProvider,
@@ -21,7 +18,7 @@ import {
 const config = getDefaultConfig({
   appName: 'ChronoStamp Protocol',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? 'demo-project-id',
-  chains: [mainnet, polygon, sepolia, polygonAmoy],
+  chains: [arbitrum],
   ssr: true,
 });
 

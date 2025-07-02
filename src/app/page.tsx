@@ -103,11 +103,9 @@ export default function HomePage() {
       {/* Content */}
       <div className="relative z-10">
         <Header />
-        <div className="pb-8 sm:pb-12 md:pb-16">
-          <HeroSection />
-          <DemoSection />
-          <FeaturesSection />
-        </div>
+        <HeroSection />
+        <DemoSection />
+        <FeaturesSection />
       </div>
 
       <style jsx>{`

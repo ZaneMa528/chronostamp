@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
+import { DatePicker } from "~/components/ui/DatePicker";
 import { useAppStore } from "~/stores/useAppStore";
 
 interface CreateEventFormProps {
@@ -178,16 +179,18 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
         {/* Event Date */}
         <div>
-          <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 mb-2">
-            Event Date
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Date & Time
           </label>
-          <Input
-            id="eventDate"
-            type="datetime-local"
+          <DatePicker
             value={formData.eventDate}
-            onChange={(e) => handleInputChange('eventDate', e.target.value)}
+            onChange={(value) => handleInputChange('eventDate', value)}
             disabled={ui.isLoading}
+            placeholder="Select event date and time"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            When will your event take place?
+          </p>
         </div>
 
         {/* Max Supply */}

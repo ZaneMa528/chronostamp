@@ -45,7 +45,7 @@ export function DemoSection() {
           Try It Now!
         </h2>
         <p className="text-lg text-gray-600 mb-8">
-          Test the claiming experience with these special demo codes (normally event codes are secret!)
+          Test the claiming experience with these special demo codes
         </p>
         
         <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -72,7 +72,7 @@ export function DemoSection() {
         
         <p className="text-sm text-gray-500 mt-8">
           Copy any demo code above and paste it in the claim form to test the experience.<br/>
-          <strong>Note:</strong> In real events, codes are only revealed to attendees at the venue.
+          <strong>Note:</strong> When creating real events, you set your own secret codes that are only revealed to attendees at the venue.
         </p>
       </div>
     </section>

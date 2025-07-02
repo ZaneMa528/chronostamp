@@ -28,6 +28,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    eventCode: "",
     eventDate: "",
     maxSupply: "",
   });
@@ -72,7 +73,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.description || !imageFile) {
+    if (!formData.name || !formData.description || !formData.eventCode || !imageFile) {
       alert("Please fill in all required fields and upload an image");
       return;
     }
@@ -89,7 +90,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
         name: formData.name,
         description: formData.description,
         imageUrl: imagePreview,
-        eventCode: `${formData.name.toUpperCase().replace(/\s+/g, "")}${Date.now().toString().slice(-4)}`,
+        eventCode: formData.eventCode.toUpperCase(),
         organizer: user.address ?? "Unknown",
         eventDate: new Date(formData.eventDate || Date.now()),
         maxSupply: formData.maxSupply
@@ -101,10 +102,10 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
         throw new Error(response.message ?? response.error ?? 'Failed to create event');
       }
 
-      alert(`ChronoStamp event created successfully!\nEvent Code: ${response.data?.eventCode}`);
+      alert(`ChronoStamp event created successfully!\n\n🔐 Secret Event Code: ${response.data?.eventCode}\n\n⚠️ Keep this code secret! Only share it with attendees at your event.`);
 
       // Reset form
-      setFormData({ name: "", description: "", eventDate: "", maxSupply: "" });
+      setFormData({ name: "", description: "", eventCode: "", eventDate: "", maxSupply: "" });
       setImageFile(null);
       setImagePreview("");
       onPreviewUpdate({ name: "", description: "", imageUrl: "" });
@@ -160,6 +161,27 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             disabled={ui.isLoading}
             rows={3}
           />
+        </div>
+
+        {/* Event Code */}
+        <div>
+          <label
+            htmlFor="eventCode"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            Secret Event Code *
+          </label>
+          <Input
+            id="eventCode"
+            placeholder="e.g., DEVCONF2024SECRET"
+            value={formData.eventCode}
+            onChange={(e) => handleInputChange("eventCode", e.target.value.toUpperCase())}
+            disabled={ui.isLoading}
+            className="font-mono"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            This secret code will be revealed to attendees at the event to claim their ChronoStamp
+          </p>
         </div>
 
         {/* Event Image */}
@@ -249,6 +271,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               !user.isConnected ||
               !formData.name ||
               !formData.description ||
+              !formData.eventCode ||
               !imageFile
             }
             className="w-full"
@@ -261,7 +284,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             <p className="mt-3 text-center text-sm text-gray-500">
               Connect your wallet to create events
             </p>
-          ) : !formData.name || !formData.description || !imageFile ? (
+          ) : !formData.name || !formData.description || !formData.eventCode || !imageFile ? (
             <p className="mt-3 text-center text-sm text-gray-400">
               Fill in all required fields to continue
             </p>

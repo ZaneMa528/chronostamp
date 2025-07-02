@@ -95,10 +95,10 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
 
   if (isLoadingEvent) {
     return (
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="text-gray-600 mt-4">Loading event details...</p>
+          <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600 mt-4 text-sm sm:text-base">Loading event details...</p>
         </div>
       </div>
     );
@@ -106,16 +106,16 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
 
   if (error || !event) {
     return (
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
         <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Event Not Found</h1>
-          <p className="text-gray-600 mb-6">{error ?? 'The event you are looking for does not exist.'}</p>
-          <Button onClick={() => window.location.href = '/'}>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Event Not Found</h1>
+          <p className="text-gray-600 mb-6 text-sm sm:text-base">{error ?? 'The event you are looking for does not exist.'}</p>
+          <Button onClick={() => window.location.href = '/'} className="w-full sm:w-auto">
             Back to Home
           </Button>
         </div>
@@ -127,13 +127,13 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
   const isSoldOut = event.stats.maxSupply && event.stats.totalClaimed >= event.stats.maxSupply;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6 sm:py-8">
       {/* Back Navigation */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <Button 
           variant="outline" 
           onClick={() => void window.history.back()}
-          className="flex items-center space-x-2"
+          className="flex items-center gap-2 text-sm sm:text-base"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -142,9 +142,9 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Event Image */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6 order-first lg:order-none">
           <div className="aspect-square rounded-lg overflow-hidden shadow-lg">
             <img 
               src={event.imageUrl} 
@@ -195,23 +195,29 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
         </div>
 
         {/* Event Details */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Header */}
           <div>
-            <div className="flex items-center space-x-3 mb-3">
-              <h1 className="text-3xl font-bold text-gray-900">{event.name}</h1>
-              {isSoldOut && <Badge variant="destructive">Sold Out</Badge>}
-              {!isEventActive && !isSoldOut && <Badge variant="secondary">Past Event</Badge>}
-              {isEventActive && !isSoldOut && <Badge variant="default">Active</Badge>}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{event.name}</h1>
+              <div className="flex gap-2">
+                {isSoldOut && <Badge variant="destructive">Sold Out</Badge>}
+                {!isEventActive && !isSoldOut && <Badge variant="secondary">Past Event</Badge>}
+                {isEventActive && !isSoldOut && <Badge variant="default">Active</Badge>}
+              </div>
             </div>
-            <p className="text-lg text-gray-600 mb-4">{event.description}</p>
+            <p className="text-base sm:text-lg text-gray-600 mb-4">{event.description}</p>
             
-            <div className="flex items-center space-x-6 text-sm text-gray-600">
-              <div className="flex items-center space-x-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-xs sm:text-sm text-gray-600">
+              <div className="flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span>{new Date(event.eventDate).toLocaleDateString()} at {new Date(event.eventDate).toLocaleTimeString()}</span>
+                <span>{new Date(event.eventDate).toLocaleDateString()}</span>
+                <span className="hidden sm:inline">at {new Date(event.eventDate).toLocaleTimeString()}</span>
+              </div>
+              <div className="block sm:hidden text-xs text-gray-500">
+                {new Date(event.eventDate).toLocaleTimeString()}
               </div>
             </div>
           </div>
@@ -300,15 +306,15 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
             <CardContent className="space-y-4">
               {!user.isConnected ? (
                 <div className="text-center">
-                  <p className="text-gray-600 mb-4">Connect your wallet to claim this ChronoStamp</p>
-                  <Button disabled className="w-full" size="lg">
+                  <p className="text-gray-600 mb-4 text-sm sm:text-base">Connect your wallet to claim this ChronoStamp</p>
+                  <Button disabled className="w-full h-12 sm:h-auto text-sm sm:text-base" size="lg">
                     Connect Wallet First
                   </Button>
                 </div>
               ) : isSoldOut ? (
                 <div className="text-center">
-                  <p className="text-red-600 mb-4">This event has reached its maximum supply</p>
-                  <Button disabled className="w-full" size="lg">
+                  <p className="text-red-600 mb-4 text-sm sm:text-base">This event has reached its maximum supply</p>
+                  <Button disabled className="w-full h-12 sm:h-auto text-sm sm:text-base" size="lg">
                     Sold Out
                   </Button>
                 </div>
@@ -324,7 +330,7 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
                       value={eventCode}
                       onChange={(e) => setEventCode(e.target.value.toUpperCase())}
                       disabled={ui.isLoading}
-                      className="text-center text-lg font-mono tracking-wider"
+                      className="text-center text-base sm:text-lg font-mono tracking-wider h-12 sm:h-auto"
                     />
                     <p className="text-xs text-gray-500 mt-1 text-center">
                       The event organizer will provide this code during the event
@@ -334,18 +340,18 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
                   <Button 
                     onClick={handleClaimStamp}
                     disabled={ui.isLoading || !eventCode.trim()}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    className="w-full bg-blue-600 hover:bg-blue-700 h-12 sm:h-auto text-sm sm:text-base"
                     size="lg"
                   >
                     {ui.isLoading ? ui.loadingMessage : 'Claim ChronoStamp'}
                   </Button>
                   
                   {!eventCode.trim() ? (
-                    <p className="text-sm text-gray-400 text-center">
+                    <p className="text-xs sm:text-sm text-gray-400 text-center">
                       Enter the event code to continue
                     </p>
                   ) : (
-                    <p className="text-sm text-green-600 text-center">
+                    <p className="text-xs sm:text-sm text-green-600 text-center">
                       ✓ Ready to claim your ChronoStamp!
                     </p>
                   )}

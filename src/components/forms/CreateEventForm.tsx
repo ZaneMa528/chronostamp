@@ -127,7 +127,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           Fill in the details below to create your unique event NFT stamps
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6">
         {/* Event Name */}
         <div>
           <label
@@ -142,6 +142,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             value={formData.name}
             onChange={(e) => handleInputChange("name", e.target.value)}
             disabled={ui.isLoading}
+            className="h-12 sm:h-auto"
           />
         </div>
 
@@ -160,6 +161,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             onChange={(e) => handleInputChange("description", e.target.value)}
             disabled={ui.isLoading}
             rows={3}
+            className="text-sm sm:text-base"
           />
         </div>
 
@@ -177,7 +179,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             value={formData.eventCode}
             onChange={(e) => handleInputChange("eventCode", e.target.value.toUpperCase())}
             disabled={ui.isLoading}
-            className="font-mono"
+            className="font-mono h-12 sm:h-auto text-sm sm:text-base"
           />
           <p className="mt-1 text-xs text-gray-500">
             This secret code will be revealed to attendees at the event to claim their ChronoStamp
@@ -192,17 +194,20 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           >
             Event Artwork *
           </label>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
               disabled={ui.isLoading}
+              className="w-full sm:w-auto"
             >
               {imageFile ? "Change Image" : "Upload Image"}
             </Button>
             {imageFile && (
-              <span className="text-sm text-gray-600">{imageFile.name}</span>
+              <span className="text-xs sm:text-sm text-gray-600 truncate">
+                {imageFile.name}
+              </span>
             )}
           </div>
           <input
@@ -217,9 +222,9 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               <Image
                 src={imagePreview}
                 alt="Event preview"
-                width={128}
-                height={128}
-                className="rounded-lg border object-cover"
+                width={96}
+                height={96}
+                className="sm:w-32 sm:h-32 rounded-lg border object-cover"
               />
             </div>
           )}
@@ -256,6 +261,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             value={formData.maxSupply}
             onChange={(e) => handleInputChange("maxSupply", e.target.value)}
             disabled={ui.isLoading}
+            className="h-12 sm:h-auto"
           />
           <p className="mt-1 text-xs text-gray-500">
             Leave empty for unlimited supply
@@ -263,7 +269,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
         </div>
 
         {/* Submit Button */}
-        <div className="pt-4">
+        <div className="pt-2 sm:pt-4">
           <Button
             onClick={handleSubmit}
             disabled={
@@ -274,22 +280,22 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               !formData.eventCode ||
               !imageFile
             }
-            className="w-full"
+            className="w-full h-12 sm:h-14 text-sm sm:text-base"
             size="lg"
           >
             {ui.isLoading ? ui.loadingMessage : "Create ChronoStamp Event"}
           </Button>
 
           {!user.isConnected ? (
-            <p className="mt-3 text-center text-sm text-gray-500">
+            <p className="mt-3 text-center text-xs sm:text-sm text-gray-500">
               Connect your wallet to create events
             </p>
           ) : !formData.name || !formData.description || !formData.eventCode || !imageFile ? (
-            <p className="mt-3 text-center text-sm text-gray-400">
+            <p className="mt-3 text-center text-xs sm:text-sm text-gray-400">
               Fill in all required fields to continue
             </p>
           ) : (
-            <p className="mt-3 text-center text-sm text-green-600">
+            <p className="mt-3 text-center text-xs sm:text-sm text-green-600">
               ✓ Ready to create your event!
             </p>
           )}

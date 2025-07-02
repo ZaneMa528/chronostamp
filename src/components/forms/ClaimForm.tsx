@@ -5,10 +5,11 @@ import { Button } from "~/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
 import { useAppStore } from "~/stores/useAppStore";
+import { ApiClient } from "~/lib/api";
 
 export function ClaimForm() {
   const [eventCode, setEventCode] = useState('');
-  const { user, mockClaimStamp, setLoading, ui } = useAppStore();
+  const { user, addOwnedStamp, setLoading, ui } = useAppStore();
 
   const handleClaim = async () => {
     if (!eventCode.trim()) {
@@ -16,17 +17,26 @@ export function ClaimForm() {
       return;
     }
 
-    if (!user.isConnected) {
+    if (!user.isConnected || !user.address) {
       alert('Please connect your wallet first');
       return;
     }
 
     try {
       setLoading(true, 'Finding event and claiming your ChronoStamp...');
-      // Mock contract address lookup - in real app this would be from API/database
-      const mockContractAddress = `0x${Math.random().toString(16).slice(2, 42)}`;
-      await mockClaimStamp(eventCode, mockContractAddress);
-      alert('ChronoStamp claimed successfully!');
+      
+      const response = await ApiClient.claimStamp(eventCode, user.address);
+      
+      if (!response.success) {
+        throw new Error(response.message ?? response.error ?? 'Failed to claim ChronoStamp');
+      }
+
+      if (response.data) {
+        // Add the claimed stamp to user's collection
+        addOwnedStamp(response.data.stamp);
+        alert(`ChronoStamp claimed successfully!\nTransaction: ${response.data.transaction.hash.slice(0, 10)}...`);
+      }
+      
       setEventCode('');
     } catch (error) {
       alert('Failed to claim ChronoStamp: ' + (error as Error).message);

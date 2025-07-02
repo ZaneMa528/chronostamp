@@ -122,7 +122,7 @@ export const useAppStore = create<AppState>()(
     })),
     
     // Mock Implementation
-    mockClaimStamp: async (eventCode: string, contractAddress: string) => {
+    mockClaimStamp: async (eventCode: string, _contractAddress: string) => {
       const { events, addOwnedStamp, setEvents } = get();
       
       // Initialize with some mock events if list is empty

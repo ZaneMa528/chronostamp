@@ -126,32 +126,19 @@ export function FeaturesSection() {
                   `}
                 >
                   <div 
-                    className="group relative p-6 sm:p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden"
+                    className="relative p-6 sm:p-8 rounded-2xl shadow-xl overflow-hidden"
                     style={{
                       background: `linear-gradient(135deg, white 0%, ${feature.accent}15 100%)`,
                       border: `2px solid ${feature.accent}40`
                     }}
                   >
-                    {/* Card Glow Effect */}
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"
-                      style={{
-                        background: `radial-gradient(circle at center, ${feature.primary}10 0%, transparent 70%)`
-                      }}
-                    />
-                    
-                    {/* Icon with Glow */}
+                    {/* Icon */}
                     <div className="relative flex items-center justify-center mb-6">
                       <div 
-                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-3xl sm:text-4xl transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12"
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-3xl sm:text-4xl"
                         style={{
                           background: `linear-gradient(135deg, ${feature.primary} 0%, ${feature.secondary} 100%)`,
-                          boxShadow: `0 10px 30px ${feature.primary}40, 0 0 0 0px ${feature.accent}40`,
-                          animationName: inView ? 'icon-float' : 'none',
-                          animationDuration: '3s',
-                          animationTimingFunction: 'ease-in-out',
-                          animationIterationCount: 'infinite',
-                          animationDelay: `${index * 0.5}s`
+                          boxShadow: `0 10px 30px ${feature.primary}40`
                         }}
                       >
                         <span className="text-white drop-shadow-lg">{feature.icon}</span>
@@ -201,15 +188,6 @@ export function FeaturesSection() {
           to { 
             opacity: 1; 
             transform: translateY(0) scale(1); 
-          }
-        }
-        
-        @keyframes icon-float {
-          0%, 100% { 
-            transform: translateY(0) rotate(0deg) scale(1); 
-          }
-          50% { 
-            transform: translateY(-8px) rotate(5deg) scale(1.05); 
           }
         }
         

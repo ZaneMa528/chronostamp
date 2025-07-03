@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Badge } from '~/components/ui/Badge';
+import { useNotificationStore } from '~/stores/useNotificationStore';
 import type { Event } from '~/stores/useAppStore';
 
 interface EventCardProps {
@@ -22,6 +23,7 @@ interface ColorTheme {
 }
 
 export function EventCard({ event, size = 'md', onShare }: EventCardProps) {
+  const { showInfo } = useNotificationStore();
   const [isFlipped, setIsFlipped] = useState(false);
   const [colorTheme, setColorTheme] = useState<ColorTheme>({
     primary: '#92400e',
@@ -195,7 +197,7 @@ export function EventCard({ event, size = 'md', onShare }: EventCardProps) {
       onShare(url);
     } else {
       void navigator.clipboard.writeText(url);
-      alert('Event link copied to clipboard!');
+      showInfo('Event link copied to clipboard!');
     }
   };
 
@@ -694,7 +696,7 @@ export function EventCard({ event, size = 'md', onShare }: EventCardProps) {
                         onClick={(e) => {
                           e.stopPropagation();
                           void navigator.clipboard.writeText(event.contractAddress);
-                          alert('Contract address copied!');
+                          showInfo('Contract address copied to clipboard!');
                         }}
                         className="mt-2 px-3 py-1 rounded text-xs font-medium transition-colors"
                         style={{

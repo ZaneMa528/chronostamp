@@ -13,6 +13,7 @@ import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
 import { DatePicker } from "~/components/ui/DatePicker";
 import { useAppStore } from "~/stores/useAppStore";
+import { useNotificationStore } from "~/stores/useNotificationStore";
 import { ApiClient } from "~/lib/api";
 import Image from "next/image";
 
@@ -37,6 +38,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user, setLoading, ui } = useAppStore();
+  const { showSuccess, showError, showWarning } = useNotificationStore();
 
   const handleInputChange = (field: string, value: string) => {
     const newFormData = { ...formData, [field]: value };
@@ -74,12 +76,12 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.description || !formData.eventCode || !imageFile) {
-      alert("Please fill in all required fields and upload an image");
+      showWarning("Please fill in all required fields and upload an image");
       return;
     }
 
     if (!user.isConnected) {
-      alert("Please connect your wallet first");
+      showWarning("Please connect your wallet first");
       return;
     }
 
@@ -102,7 +104,29 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
         throw new Error(response.message ?? response.error ?? 'Failed to create event');
       }
 
-      alert(`ChronoStamp event created successfully!\n\n🔐 Secret Event Code: ${response.data?.eventCode}\n\n⚠️ Keep this code secret! Only share it with attendees at your event.`);
+      showSuccess(
+        `ChronoStamp event created successfully! 🎉`,
+        {
+          title: 'Event Created',
+          duration: 10000,
+          actions: [
+            {
+              label: 'Copy Event Code',
+              onClick: () => {
+                void navigator.clipboard.writeText(response.data?.eventCode ?? '');
+                showSuccess('Event code copied to clipboard!');
+              }
+            },
+            {
+              label: 'View Event',
+              onClick: () => {
+                window.location.href = `/event/${response.data?.id}`;
+              },
+              variant: 'outline'
+            }
+          ]
+        }
+      );
 
       // Reset form
       setFormData({ name: "", description: "", eventCode: "", eventDate: "", maxSupply: "" });
@@ -113,7 +137,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
         fileInputRef.current.value = "";
       }
     } catch (error) {
-      alert("Failed to create event: " + (error as Error).message);
+      showError("Failed to create event: " + (error as Error).message);
     } finally {
       setLoading(false);
     }

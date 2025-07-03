@@ -6,6 +6,7 @@ import { Button } from '~/components/ui/Button';
 import { Badge } from '~/components/ui/Badge';
 import { Input } from '~/components/ui/Input';
 import { useAppStore } from '~/stores/useAppStore';
+import { useNotificationStore } from '~/stores/useNotificationStore';
 import { ApiClient } from '~/lib/api';
 import type { Event } from '~/stores/useAppStore';
 
@@ -30,6 +31,7 @@ interface EventWithDetails extends Event {
 
 export function EventDetailSection({ eventId }: EventDetailSectionProps) {
   const { user, addOwnedStamp, setLoading, ui } = useAppStore();
+  const { showSuccess, showError, showWarning, showInfo } = useNotificationStore();
   const [event, setEvent] = useState<EventWithDetails | null>(null);
   const [isLoadingEvent, setIsLoadingEvent] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,12 +63,12 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
 
   const handleClaimStamp = async () => {
     if (!event || !user.isConnected || !user.address) {
-      alert('Please connect your wallet first');
+      showWarning('Please connect your wallet first');
       return;
     }
 
     if (!eventCode.trim()) {
-      alert('Please enter the event code provided at the event');
+      showWarning('Please enter the event code provided at the event');
       return;
     }
 
@@ -81,13 +83,27 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
 
       if (response.data) {
         addOwnedStamp(response.data.stamp);
-        alert(`ChronoStamp claimed successfully!\\nTransaction: ${response.data.transaction.hash.slice(0, 10)}...`);
+        showSuccess(
+          `ChronoStamp claimed successfully! 🎉`,
+          {
+            title: 'Claim Successful',
+            duration: 8000,
+            actions: [{
+              label: 'View Transaction',
+              onClick: () => {
+                if (response.data?.transaction?.hash) {
+                  window.open(`https://etherscan.io/tx/${response.data.transaction.hash}`, '_blank');
+                }
+              }
+            }]
+          }
+        );
         // Refresh event details to update stats and clear the input
         void loadEventDetails();
         setEventCode('');
       }
     } catch (error) {
-      alert('Failed to claim ChronoStamp: ' + (error as Error).message);
+      showError('Failed to claim ChronoStamp: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -184,7 +200,7 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
                   className="w-full"
                   onClick={() => {
                     void navigator.clipboard.writeText(event.contractAddress);
-                    alert('Contract address copied!');
+                    showInfo('Contract address copied to clipboard!');
                   }}
                 >
                   Copy Contract Address

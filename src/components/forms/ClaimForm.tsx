@@ -5,20 +5,22 @@ import { Button } from "~/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/Card";
 import { Input } from "~/components/ui/Input";
 import { useAppStore } from "~/stores/useAppStore";
+import { useNotificationStore } from "~/stores/useNotificationStore";
 import { ApiClient } from "~/lib/api";
 
 export function ClaimForm() {
   const [eventCode, setEventCode] = useState('');
   const { user, addOwnedStamp, setLoading, ui } = useAppStore();
+  const { showSuccess, showError, showWarning } = useNotificationStore();
 
   const handleClaim = async () => {
     if (!eventCode.trim()) {
-      alert('Please enter an event code');
+      showWarning('Please enter an event code');
       return;
     }
 
     if (!user.isConnected || !user.address) {
-      alert('Please connect your wallet first');
+      showWarning('Please connect your wallet first');
       return;
     }
 
@@ -34,12 +36,26 @@ export function ClaimForm() {
       if (response.data) {
         // Add the claimed stamp to user's collection
         addOwnedStamp(response.data.stamp);
-        alert(`ChronoStamp claimed successfully!\nTransaction: ${response.data.transaction.hash.slice(0, 10)}...`);
+        showSuccess(
+          `ChronoStamp claimed successfully! 🎉`,
+          {
+            title: 'Claim Successful',
+            duration: 8000,
+            actions: [{
+              label: 'View Transaction',
+              onClick: () => {
+                if (response.data?.transaction?.hash) {
+                  window.open(`https://etherscan.io/tx/${response.data.transaction.hash}`, '_blank');
+                }
+              }
+            }]
+          }
+        );
       }
       
       setEventCode('');
     } catch (error) {
-      alert('Failed to claim ChronoStamp: ' + (error as Error).message);
+      showError('Failed to claim ChronoStamp: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }

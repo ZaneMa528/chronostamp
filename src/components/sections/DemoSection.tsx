@@ -76,134 +76,239 @@ export function DemoSection() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto mb-8">
           {demoEvents.map((event) => (
-            <div
-              key={event.code}
-              className="group perspective-1000"
-              onMouseEnter={() => setHoveredCard(event.id)}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              {/* Stamp Card */}
-              <div 
-                className={`
-                  relative w-full h-80 transform-style-preserve-3d transition-all duration-700 cursor-pointer
-                  ${hoveredCard === event.id ? 'rotate-y-12 scale-105' : 'hover:rotate-y-6'}
-                `}
-                style={{
-                  transformStyle: 'preserve-3d'
-                }}
+            <div key={event.code}>
+              {/* Desktop Version with animations */}
+              <div
+                className="hidden sm:block group perspective-1000"
+                onMouseEnter={() => setHoveredCard(event.id)}
+                onMouseLeave={() => setHoveredCard(null)}
               >
-                {/* Card Shadow */}
                 <div 
-                  className="absolute inset-0 bg-black rounded-lg opacity-20 blur-xl transform translate-y-4 scale-95"
+                  className={`
+                    relative w-full h-80 transform-style-preserve-3d transition-all duration-700 cursor-pointer
+                    ${hoveredCard === event.id ? 'rotate-y-12 scale-105' : 'hover:rotate-y-6'}
+                  `}
                   style={{
-                    transform: hoveredCard === event.id ? 'translateY(8px) scale(1.02)' : 'translateY(4px) scale(0.95)'
+                    transformStyle: 'preserve-3d'
                   }}
-                />
-                
-                {/* Main Stamp Card */}
-                <div className="relative w-full h-full p-3 bg-white rounded-lg shadow-2xl stamp-perforations">
+                >
+                  {/* Card Shadow */}
                   <div 
-                    className="w-full h-full border-4 border-double rounded-sm p-4 flex flex-col relative overflow-hidden"
+                    className="absolute inset-0 bg-black rounded-lg opacity-20 blur-xl transform translate-y-4 scale-95"
                     style={{
-                      borderColor: `${event.primary}CC`,
-                      background: `linear-gradient(135deg, ${event.background} 0%, ${event.accent}20 100%)`
+                      transform: hoveredCard === event.id ? 'translateY(8px) scale(1.02)' : 'translateY(4px) scale(0.95)'
                     }}
-                  >
-                    
-                    {/* Decorative Corner Flourishes */}
+                  />
+                  
+                  {/* Main Stamp Card */}
+                  <div className="relative w-full h-full p-3 bg-white rounded-lg shadow-2xl stamp-perforations">
                     <div 
-                      className="absolute top-1 left-1 w-4 h-4 border-l-2 border-t-2 rounded-tl-lg"
-                      style={{ borderColor: `${event.primary}99` }}
-                    />
-                    <div 
-                      className="absolute top-1 right-1 w-4 h-4 border-r-2 border-t-2 rounded-tr-lg"
-                      style={{ borderColor: `${event.primary}99` }}
-                    />
-                    <div 
-                      className="absolute bottom-1 left-1 w-4 h-4 border-l-2 border-b-2 rounded-bl-lg"
-                      style={{ borderColor: `${event.primary}99` }}
-                    />
-                    <div 
-                      className="absolute bottom-1 right-1 w-4 h-4 border-r-2 border-b-2 rounded-br-lg"
-                      style={{ borderColor: `${event.primary}99` }}
-                    />
-
-                    {/* Main Icon Area */}
-                    <div className="flex-1 flex items-center justify-center mb-4">
+                      className="w-full h-full border-4 border-double rounded-sm p-4 flex flex-col relative overflow-hidden"
+                      style={{
+                        borderColor: `${event.primary}CC`,
+                        background: `linear-gradient(135deg, ${event.background} 0%, ${event.accent}20 100%)`
+                      }}
+                    >
+                      
+                      {/* Decorative Corner Flourishes */}
                       <div 
-                        className="w-16 h-16 rounded-full flex items-center justify-center text-3xl transform transition-transform duration-300 group-hover:scale-110"
-                        style={{
-                          background: `linear-gradient(135deg, ${event.primary} 0%, ${event.secondary} 100%)`,
-                          boxShadow: `0 8px 24px ${event.primary}40`
-                        }}
+                        className="absolute top-1 left-1 w-4 h-4 border-l-2 border-t-2 rounded-tl-lg"
+                        style={{ borderColor: `${event.primary}99` }}
+                      />
+                      <div 
+                        className="absolute top-1 right-1 w-4 h-4 border-r-2 border-t-2 rounded-tr-lg"
+                        style={{ borderColor: `${event.primary}99` }}
+                      />
+                      <div 
+                        className="absolute bottom-1 left-1 w-4 h-4 border-l-2 border-b-2 rounded-bl-lg"
+                        style={{ borderColor: `${event.primary}99` }}
+                      />
+                      <div 
+                        className="absolute bottom-1 right-1 w-4 h-4 border-r-2 border-b-2 rounded-br-lg"
+                        style={{ borderColor: `${event.primary}99` }}
+                      />
+
+                      {/* Main Icon Area */}
+                      <div className="flex-1 flex items-center justify-center mb-4">
+                        <div 
+                          className="w-16 h-16 rounded-full flex items-center justify-center text-3xl transform transition-transform duration-300 group-hover:scale-110"
+                          style={{
+                            background: `linear-gradient(135deg, ${event.primary} 0%, ${event.secondary} 100%)`,
+                            boxShadow: `0 8px 24px ${event.primary}40`
+                          }}
+                        >
+                          <span className="text-white drop-shadow-lg">{event.icon}</span>
+                        </div>
+                      </div>
+
+                      {/* Event Title */}
+                      <h3 
+                        className="font-serif text-lg font-bold mb-2 text-center"
+                        style={{ color: event.primary }}
                       >
-                        <span className="text-white drop-shadow-lg">{event.icon}</span>
+                        {event.name.toUpperCase()}
+                      </h3>
+                      
+                      {/* Demo Code Badge */}
+                      <div className="text-center mb-3">
+                        <code 
+                          className="px-3 py-1 rounded font-mono text-sm font-bold tracking-wider"
+                          style={{
+                            backgroundColor: event.accent,
+                            color: event.primary,
+                            boxShadow: `inset 0 2px 4px ${event.primary}20`
+                          }}
+                        >
+                          {event.code}
+                        </code>
+                      </div>
+
+                      {/* Description */}
+                      <p 
+                        className="text-center text-sm mb-4"
+                        style={{ color: event.secondary }}
+                      >
+                        {event.description}
+                      </p>
+
+                      {/* Action Button */}
+                      <Link href={`/event/${event.id}`} className="block">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full text-sm font-medium transition-all duration-300 hover:shadow-lg"
+                          style={{
+                            borderColor: event.primary,
+                            color: event.primary,
+                            backgroundColor: 'transparent'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = event.primary;
+                            e.currentTarget.style.color = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = event.primary;
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      </Link>
+
+                      {/* Watermark Pattern */}
+                      <div className="absolute inset-0 opacity-5 pointer-events-none">
+                        <div 
+                          className="w-full h-full bg-repeat" 
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${encodeURIComponent(event.primary)}' fill-opacity='1'%3E%3Cpath d='M20 20c0-7.732-6.268-14-14-14s-14 6.268-14 14 6.268 14 14 14 14-6.268 14-14z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                            backgroundSize: '20px 20px'
+                          }}
+                        />
                       </div>
                     </div>
-
-                    {/* Event Title */}
-                    <h3 
-                      className="font-serif text-lg font-bold mb-2 text-center"
-                      style={{ color: event.primary }}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Mobile Version - No animations */}
+              <div className="sm:hidden">
+                <div className="relative w-full h-80">
+                  <div className="relative w-full h-full p-3 bg-white rounded-lg shadow-lg stamp-perforations">
+                    <div 
+                      className="w-full h-full border-4 border-double rounded-sm p-4 flex flex-col relative overflow-hidden"
+                      style={{
+                        borderColor: `${event.primary}CC`,
+                        background: `linear-gradient(135deg, ${event.background} 0%, ${event.accent}20 100%)`
+                      }}
                     >
-                      {event.name.toUpperCase()}
-                    </h3>
-                    
-                    {/* Demo Code Badge */}
-                    <div className="text-center mb-3">
-                      <code 
-                        className="px-3 py-1 rounded font-mono text-sm font-bold tracking-wider"
-                        style={{
-                          backgroundColor: event.accent,
-                          color: event.primary,
-                          boxShadow: `inset 0 2px 4px ${event.primary}20`
-                        }}
-                      >
-                        {event.code}
-                      </code>
-                    </div>
-
-                    {/* Description */}
-                    <p 
-                      className="text-center text-sm mb-4"
-                      style={{ color: event.secondary }}
-                    >
-                      {event.description}
-                    </p>
-
-                    {/* Action Button */}
-                    <Link href={`/event/${event.id}`} className="block">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full text-sm font-medium transition-all duration-300 hover:shadow-lg"
-                        style={{
-                          borderColor: event.primary,
-                          color: event.primary,
-                          backgroundColor: 'transparent'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = event.primary;
-                          e.currentTarget.style.color = 'white';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.color = event.primary;
-                        }}
-                      >
-                        View Details
-                      </Button>
-                    </Link>
-
-                    {/* Watermark Pattern */}
-                    <div className="absolute inset-0 opacity-5 pointer-events-none">
+                      
+                      {/* Decorative Corner Flourishes */}
                       <div 
-                        className="w-full h-full bg-repeat" 
-                        style={{
-                          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${encodeURIComponent(event.primary)}' fill-opacity='1'%3E%3Cpath d='M20 20c0-7.732-6.268-14-14-14s-14 6.268-14 14 6.268 14 14 14 14-6.268 14-14z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                          backgroundSize: '20px 20px'
-                        }}
+                        className="absolute top-1 left-1 w-4 h-4 border-l-2 border-t-2 rounded-tl-lg"
+                        style={{ borderColor: `${event.primary}99` }}
                       />
+                      <div 
+                        className="absolute top-1 right-1 w-4 h-4 border-r-2 border-t-2 rounded-tr-lg"
+                        style={{ borderColor: `${event.primary}99` }}
+                      />
+                      <div 
+                        className="absolute bottom-1 left-1 w-4 h-4 border-l-2 border-b-2 rounded-bl-lg"
+                        style={{ borderColor: `${event.primary}99` }}
+                      />
+                      <div 
+                        className="absolute bottom-1 right-1 w-4 h-4 border-r-2 border-b-2 rounded-br-lg"
+                        style={{ borderColor: `${event.primary}99` }}
+                      />
+
+                      {/* Main Icon Area */}
+                      <div className="flex-1 flex items-center justify-center mb-4">
+                        <div 
+                          className="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
+                          style={{
+                            background: `linear-gradient(135deg, ${event.primary} 0%, ${event.secondary} 100%)`,
+                            boxShadow: `0 8px 24px ${event.primary}40`
+                          }}
+                        >
+                          <span className="text-white drop-shadow-lg">{event.icon}</span>
+                        </div>
+                      </div>
+
+                      {/* Event Title */}
+                      <h3 
+                        className="font-serif text-lg font-bold mb-2 text-center"
+                        style={{ color: event.primary }}
+                      >
+                        {event.name.toUpperCase()}
+                      </h3>
+                      
+                      {/* Demo Code Badge */}
+                      <div className="text-center mb-3">
+                        <code 
+                          className="px-3 py-1 rounded font-mono text-sm font-bold tracking-wider"
+                          style={{
+                            backgroundColor: event.accent,
+                            color: event.primary,
+                            boxShadow: `inset 0 2px 4px ${event.primary}20`
+                          }}
+                        >
+                          {event.code}
+                        </code>
+                      </div>
+
+                      {/* Description */}
+                      <p 
+                        className="text-center text-sm mb-4"
+                        style={{ color: event.secondary }}
+                      >
+                        {event.description}
+                      </p>
+
+                      {/* Action Button */}
+                      <Link href={`/event/${event.id}`} className="block">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full text-sm font-medium"
+                          style={{
+                            borderColor: event.primary,
+                            color: event.primary,
+                            backgroundColor: 'transparent'
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      </Link>
+
+                      {/* Watermark Pattern */}
+                      <div className="absolute inset-0 opacity-5 pointer-events-none">
+                        <div 
+                          className="w-full h-full bg-repeat" 
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${encodeURIComponent(event.primary)}' fill-opacity='1'%3E%3Cpath d='M20 20c0-7.732-6.268-14-14-14s-14 6.268-14 14 6.268 14 14 14 14-6.268 14-14z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                            backgroundSize: '20px 20px'
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

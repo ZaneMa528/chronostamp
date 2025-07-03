@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ConnectWallet } from "~/components/web3/ConnectWallet";
+import { Logo } from "~/components/ui/Logo";
 import { cn } from "~/lib/utils";
 
 export function Header() {
@@ -22,7 +23,7 @@ export function Header() {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full"></div>
+            <Logo size={32} className="w-6 h-6 sm:w-8 sm:h-8" />
             <span className="text-lg sm:text-xl font-bold text-gray-900">ChronoStamp</span>
           </Link>
 

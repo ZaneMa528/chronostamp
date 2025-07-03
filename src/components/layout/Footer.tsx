@@ -1,5 +1,7 @@
 "use client";
 
+import { Logo } from "~/components/ui/Logo";
+
 export function Footer() {
   return (
     <footer className="relative border-t border-purple-100 bg-gradient-to-br from-purple-50/90 via-indigo-50/90 to-violet-50/90 backdrop-blur-sm">
@@ -8,7 +10,7 @@ export function Footer() {
           {/* Left Side - Brand */}
           <div>
             <div className="mb-2 flex items-center gap-3">
-              <div className="stamp-perforations h-8 w-8 rotate-12 transform rounded-sm bg-gradient-to-br from-purple-500 to-indigo-600 opacity-90" />
+              <Logo size={32} className="transform opacity-90" />
               <h3 className="font-serif text-xl font-bold text-gray-900">
                 ChronoStamp
               </h3>

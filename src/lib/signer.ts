@@ -7,7 +7,9 @@ import { env } from '~/env';
 class SignerManager {
   private static instance: SignerManager;
   
-  private constructor() {}
+  private constructor() {
+    // Private constructor for singleton pattern
+  }
   
   static getInstance(): SignerManager {
     if (!SignerManager.instance) {
@@ -84,7 +86,7 @@ class SignerManager {
     
     // Validate address format
     if (!ethers.isAddress(userAddress)) {
-      throw new Error(`Invalid address format: ${userAddress}`);
+      throw new Error(`Invalid address format: ${String(userAddress)}`);
     }
     
     // Ensure address is in checksum format

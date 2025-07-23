@@ -86,12 +86,64 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
     }
 
     try {
-      setLoading(true, "Creating your ChronoStamp event...");
+      setLoading(true, "Uploading image to IPFS...");
 
+      // Step 1: Upload image to IPFS
+      const imageFormData = new FormData();
+      imageFormData.append('file', imageFile);
+
+      const imageResponse = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: imageFormData,
+      });
+
+      const imageResult = await imageResponse.json() as {
+        success: boolean;
+        message?: string;
+        data?: {
+          ipfsUrl: string;
+          gatewayUrl: string;
+        };
+      };
+      
+      if (!imageResult.success) {
+        throw new Error(imageResult.message ?? 'Failed to upload image');
+      }
+
+      setLoading(true, "Uploading metadata to IPFS...");
+
+      // Step 2: Upload metadata to IPFS
+      const metadataResponse = await fetch('/api/upload-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          imageUrl: imageResult.data?.ipfsUrl,
+          eventDate: formData.eventDate,
+          organizer: user.address,
+          eventCode: formData.eventCode.toUpperCase(),
+        }),
+      });
+
+      const metadataResult = await metadataResponse.json() as {
+        success: boolean;
+        message?: string;
+      };
+      
+      if (!metadataResult.success) {
+        throw new Error(metadataResult.message ?? 'Failed to upload metadata');
+      }
+
+      setLoading(true, "Creating event...");
+
+      // Step 3: Create event with IPFS URLs
       const response = await ApiClient.createEvent({
         name: formData.name,
         description: formData.description,
-        imageUrl: imagePreview,
+        imageUrl: imageResult.data?.gatewayUrl ?? '', // Use gateway URL for display
         eventCode: formData.eventCode.toUpperCase(),
         organizer: user.address ?? "Unknown",
         eventDate: new Date(formData.eventDate || Date.now()),

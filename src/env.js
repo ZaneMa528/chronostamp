@@ -12,6 +12,8 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     PINATA_JWT: z.string().min(1),
+    SIGNER_PRIVATE_KEY_DEV: z.string().regex(/^0x[a-fA-F0-9]{64}$/, "Invalid dev private key format"),
+    SIGNER_PRIVATE_KEY_PROD: z.string().regex(/^0x[a-fA-F0-9]{64}$/, "Invalid prod private key format"),
   },
 
   /**
@@ -20,7 +22,8 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_SIGNER_ADDRESS_DEV: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid dev address format"),
+    NEXT_PUBLIC_SIGNER_ADDRESS_PROD: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid prod address format"),
   },
 
   /**
@@ -31,7 +34,10 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     PINATA_JWT: process.env.PINATA_JWT,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+    SIGNER_PRIVATE_KEY_DEV: process.env.SIGNER_PRIVATE_KEY_DEV,
+    SIGNER_PRIVATE_KEY_PROD: process.env.SIGNER_PRIVATE_KEY_PROD,
+    NEXT_PUBLIC_SIGNER_ADDRESS_DEV: process.env.NEXT_PUBLIC_SIGNER_ADDRESS_DEV,
+    NEXT_PUBLIC_SIGNER_ADDRESS_PROD: process.env.NEXT_PUBLIC_SIGNER_ADDRESS_PROD,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

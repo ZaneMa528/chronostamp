@@ -7,7 +7,7 @@ export interface ChronoStamp {
   eventName: string;
   description: string;
   imageUrl: string;
-  contractAddress: string;
+  contractAddress?: string;
   claimedAt: Date;
   eventDate: Date;
   organizer: string;
@@ -18,7 +18,7 @@ export interface Event {
   name: string;
   description: string;
   imageUrl: string;
-  contractAddress: string;
+  contractAddress?: string;
   eventCode: string;
   organizer: string;
   createdAt: Date;

@@ -1,26 +1,48 @@
 import { NextResponse } from 'next/server';
+import { eq, desc, like } from 'drizzle-orm';
+import { db } from '~/server/db';
+import { events } from '~/server/db/schema';
 import type { Event } from '~/stores/useAppStore';
-import { mockEvents } from '~/lib/mockData';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const organizer = searchParams.get('organizer');
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Query events from database
+    let query = db.query.events.findMany({
+      orderBy: [desc(events.createdAt)],
+    });
+    
+    const dbEvents = await query;
     
     // Filter events by organizer if specified
     const filteredEvents = organizer 
-      ? mockEvents.filter(event => event.organizer.toLowerCase() === organizer.toLowerCase())
-      : mockEvents;
+      ? dbEvents.filter(event => event.organizer.toLowerCase() === organizer.toLowerCase())
+      : dbEvents;
+    
+    // Convert database format to frontend format
+    const formattedEvents: Event[] = filteredEvents.map(event => ({
+      id: event.id,
+      name: event.name,
+      description: event.description,
+      imageUrl: event.imageUrl,
+      contractAddress: event.contractAddress ?? undefined,
+      eventCode: event.eventCode,
+      organizer: event.organizer,
+      createdAt: new Date(event.createdAt),
+      eventDate: new Date(event.eventDate),
+      totalClaimed: event.totalClaimed,
+      maxSupply: event.maxSupply,
+    }));
     
     return NextResponse.json({
       success: true,
-      data: filteredEvents,
-      total: filteredEvents.length,
+      data: formattedEvents,
+      total: formattedEvents.length,
     });
   } catch (error) {
+    console.error('Database error:', error);
     return NextResponse.json(
       { 
         success: false, 
@@ -58,7 +80,11 @@ export async function POST(request: Request) {
     }
 
     // Check if event code already exists
-    if (mockEvents.some(event => event.eventCode === eventCode?.toUpperCase())) {
+    const existingEvent = await db.query.events.findFirst({
+      where: eq(events.eventCode, eventCode.toUpperCase()),
+    });
+
+    if (existingEvent) {
       return NextResponse.json(
         { 
           success: false, 
@@ -69,33 +95,56 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create new event
-    const newEvent: Event = {
-      id: (mockEvents.length + 1).toString(),
+    // Generate unique event ID
+    const eventId = `event_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
+    // Create new event in database
+    const newEventData = {
+      id: eventId,
       name,
       description,
       imageUrl: imageUrl ?? 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&h=500&fit=crop',
-      contractAddress: `0x${Math.random().toString(16).slice(2, 42)}`,
+      contractAddress: null, // Will be set when smart contract is deployed
       eventCode: eventCode.toUpperCase(),
       organizer,
-      createdAt: new Date(),
       eventDate: new Date(eventDate ?? Date.now() + 30 * 24 * 60 * 60 * 1000), // Default to 30 days from now
       totalClaimed: 0,
-      maxSupply: maxSupply ?? undefined,
+      maxSupply: maxSupply ?? 1000, // Default max supply
     };
 
-    // Add to mock data (in a real app, this would be saved to database)
-    mockEvents.push(newEvent);
+    await db.insert(events).values(newEventData);
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Retrieve the created event to return
+    const createdEvent = await db.query.events.findFirst({
+      where: eq(events.id, eventId),
+    });
+
+    if (!createdEvent) {
+      throw new Error('Failed to retrieve created event');
+    }
+
+    // Convert to frontend format
+    const formattedEvent: Event = {
+      id: createdEvent.id,
+      name: createdEvent.name,
+      description: createdEvent.description,
+      imageUrl: createdEvent.imageUrl,
+      contractAddress: createdEvent.contractAddress || undefined,
+      eventCode: createdEvent.eventCode,
+      organizer: createdEvent.organizer,
+      createdAt: new Date(createdEvent.createdAt),
+      eventDate: new Date(createdEvent.eventDate),
+      totalClaimed: createdEvent.totalClaimed,
+      maxSupply: createdEvent.maxSupply,
+    };
 
     return NextResponse.json({
       success: true,
-      data: newEvent,
+      data: formattedEvent,
       message: 'Event created successfully',
     });
   } catch (error) {
+    console.error('Database error:', error);
     return NextResponse.json(
       { 
         success: false, 

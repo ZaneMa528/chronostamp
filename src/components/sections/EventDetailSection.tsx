@@ -190,7 +190,7 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
               <div className="flex justify-between">
                 <span className="text-gray-600">Contract:</span>
                 <span className="font-mono text-sm">
-                  {event.contractAddress.slice(0, 6)}...{event.contractAddress.slice(-4)}
+                  {event.contractAddress ? `${event.contractAddress.slice(0, 6)}...${event.contractAddress.slice(-4)}` : 'Not deployed'}
                 </span>
               </div>
               <div className="pt-2 border-t">
@@ -199,8 +199,10 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
                   size="sm" 
                   className="w-full"
                   onClick={() => {
-                    void navigator.clipboard.writeText(event.contractAddress);
-                    showInfo('Contract address copied to clipboard!');
+                    if (event.contractAddress) {
+                      void navigator.clipboard.writeText(event.contractAddress);
+                      showInfo('Contract address copied to clipboard!');
+                    }
                   }}
                 >
                   Copy Contract Address

@@ -695,8 +695,10 @@ export function EventCard({ event, size = 'md', onShare }: EventCardProps) {
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
-                          void navigator.clipboard.writeText(event.contractAddress);
-                          showInfo('Contract address copied to clipboard!');
+                          if (event.contractAddress) {
+                            void navigator.clipboard.writeText(event.contractAddress);
+                            showInfo('Contract address copied to clipboard!');
+                          }
                         }}
                         className="mt-2 px-3 py-1 rounded text-xs font-medium transition-colors"
                         style={{

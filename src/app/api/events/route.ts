@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { eq, desc, like } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { db } from '~/server/db';
 import { events } from '~/server/db/schema';
 import type { Event } from '~/stores/useAppStore';
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const organizer = searchParams.get('organizer');
     
     // Query events from database
-    let query = db.query.events.findMany({
+    const query = db.query.events.findMany({
       orderBy: [desc(events.createdAt)],
     });
     
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
       name: createdEvent.name,
       description: createdEvent.description,
       imageUrl: createdEvent.imageUrl,
-      contractAddress: createdEvent.contractAddress || undefined,
+      contractAddress: createdEvent.contractAddress ?? undefined,
       eventCode: createdEvent.eventCode,
       organizer: createdEvent.organizer,
       createdAt: new Date(createdEvent.createdAt),

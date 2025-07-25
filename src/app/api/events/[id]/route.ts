@@ -32,7 +32,7 @@ export async function GET(
       name: event.name,
       description: event.description,
       imageUrl: event.imageUrl,
-      contractAddress: event.contractAddress || undefined,
+      contractAddress: event.contractAddress ?? undefined,
       eventCode: event.eventCode,
       organizer: event.organizer,
       createdAt: new Date(event.createdAt),

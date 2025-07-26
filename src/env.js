@@ -7,8 +7,10 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    DATABASE_URL: z.string().url(),
-    DATABASE_AUTH_TOKEN: z.string().min(1),
+    DATABASE_URL_DEV: z.string().url(),
+    DATABASE_AUTH_TOKEN_DEV: z.string().min(1),
+    DATABASE_URL_PROD: z.string().min(1), // Allow placeholder values in development
+    DATABASE_AUTH_TOKEN_PROD: z.string().min(1), // Allow placeholder values in development
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -32,8 +34,10 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
-    DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN,
+    DATABASE_URL_DEV: process.env.DATABASE_URL_DEV,
+    DATABASE_AUTH_TOKEN_DEV: process.env.DATABASE_AUTH_TOKEN_DEV,
+    DATABASE_URL_PROD: process.env.DATABASE_URL_PROD,
+    DATABASE_AUTH_TOKEN_PROD: process.env.DATABASE_AUTH_TOKEN_PROD,
     NODE_ENV: process.env.NODE_ENV,
     PINATA_JWT: process.env.PINATA_JWT,
     SIGNER_PRIVATE_KEY_DEV: process.env.SIGNER_PRIVATE_KEY_DEV,

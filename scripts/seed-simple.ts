@@ -1,8 +1,23 @@
-import { db } from '../src/server/db/index.js'
-import { events } from '../src/server/db/schema.js'
+import dotenv from 'dotenv'
+import { createClient } from '@libsql/client'
+import { drizzle } from 'drizzle-orm/libsql'
+import * as schema from '../src/server/db/schema.js'
+
+// Load environment variables
+dotenv.config()
+
+const isDevelopment = (process.env.NODE_ENV || 'development') === 'development'
+
+const client = createClient({
+  url: isDevelopment ? process.env.DATABASE_URL_DEV! : process.env.DATABASE_URL_PROD!,
+  authToken: isDevelopment ? process.env.DATABASE_AUTH_TOKEN_DEV! : process.env.DATABASE_AUTH_TOKEN_PROD!,
+})
+
+const db = drizzle(client, { schema })
 
 async function seedDemoData() {
   console.log('🌱 Seeding demo data...')
+  console.log(`Environment: ${isDevelopment ? 'development' : 'production'}`)
   
   // Check if demo data already exists
   const existingEvents = await db.query.events.findMany()
@@ -15,14 +30,14 @@ async function seedDemoData() {
     return
   }
   
-  // Create demo events (matching original mock data)
+  // Create demo events
   const demoEvents = [
     {
       id: 'demo_event_1',
       name: 'DevConf 2024',
       description: 'The premier developer conference featuring cutting-edge technologies, expert speakers, and networking opportunities for developers worldwide.',
       imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&h=500&fit=crop',
-      contractAddress: null, // Will be set when deployed
+      contractAddress: null,
       eventCode: 'DEVCONF2024',
       organizer: '0x1234567890123456789012345678901234567890',
       eventDate: new Date('2024-03-15'),
@@ -57,7 +72,7 @@ async function seedDemoData() {
   
   // Insert demo events
   for (const event of demoEvents) {
-    await db.insert(events).values(event)
+    await db.insert(schema.events).values(event)
     console.log(`✅ Created: ${event.name}`)
   }
   
@@ -65,4 +80,7 @@ async function seedDemoData() {
   process.exit(0)
 }
 
-seedDemoData().catch(console.error)
+seedDemoData().catch((error) => {
+  console.error('❌ Seeding failed:', error)
+  process.exit(1)
+})

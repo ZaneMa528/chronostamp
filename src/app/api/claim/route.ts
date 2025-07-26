@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import { eq, and } from 'drizzle-orm';
+import { db } from '~/server/db';
+import { events, claims } from '~/server/db/schema';
 import type { ChronoStamp } from '~/stores/useAppStore';
-import { mockEvents, claimedStamps } from '~/lib/mockData';
 
 export async function POST(request: Request) {
   try {
@@ -20,7 +22,10 @@ export async function POST(request: Request) {
     }
 
     // Find the event by code
-    const event = mockEvents.find(e => e.eventCode.toUpperCase() === eventCode?.toUpperCase());
+    const event = await db.query.events.findFirst({
+      where: eq(events.eventCode, eventCode.toUpperCase()),
+    });
+
     if (!event) {
       return NextResponse.json(
         { 
@@ -33,10 +38,14 @@ export async function POST(request: Request) {
     }
 
     // Check if user already claimed this event
-    const userStamps = claimedStamps.get(userAddress) ?? [];
-    const alreadyClaimed = userStamps.some(stamp => stamp.eventName === event.name);
+    const existingClaim = await db.query.claims.findFirst({
+      where: and(
+        eq(claims.userAddress, userAddress),
+        eq(claims.eventId, event.id)
+      ),
+    });
     
-    if (alreadyClaimed) {
+    if (existingClaim) {
       return NextResponse.json(
         { 
           success: false, 
@@ -59,37 +68,42 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create new ChronoStamp
+    // Generate transaction hash (simulate blockchain transaction)
+    const transactionHash = `0x${Math.random().toString(16).slice(2, 66)}`;
+    const tokenId = (event.totalClaimed + 1).toString();
+
+    // Create new claim record in database
+    await db.insert(claims).values({
+      userAddress,
+      eventId: event.id,
+      tokenId,
+      transactionHash,
+    });
+
+    // Update event's total claimed count
+    await db.update(events)
+      .set({ totalClaimed: event.totalClaimed + 1 })
+      .where(eq(events.id, event.id));
+
+    // Create ChronoStamp response
     const newStamp: ChronoStamp = {
       id: Date.now(),
-      tokenId: event.totalClaimed + 1,
+      tokenId: parseInt(tokenId),
       eventName: event.name,
       description: event.description,
       imageUrl: event.imageUrl,
-      contractAddress: event.contractAddress,
+      contractAddress: event.contractAddress ?? undefined,
       claimedAt: new Date(),
-      eventDate: event.eventDate,
+      eventDate: new Date(event.eventDate),
       organizer: event.organizer,
     };
-
-    // Add to user's collection
-    if (!claimedStamps.has(userAddress)) {
-      claimedStamps.set(userAddress, []);
-    }
-    claimedStamps.get(userAddress)?.push(newStamp);
-
-    // Update event's total claimed count
-    event.totalClaimed += 1;
-
-    // Simulate blockchain transaction delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
 
     return NextResponse.json({
       success: true,
       data: {
         stamp: newStamp,
         transaction: {
-          hash: `0x${Math.random().toString(16).slice(2, 66)}`,
+          hash: transactionHash,
           blockNumber: Math.floor(Math.random() * 1000000) + 18000000,
           gasUsed: Math.floor(Math.random() * 50000) + 21000,
         }
@@ -98,6 +112,7 @@ export async function POST(request: Request) {
     });
 
   } catch (error) {
+    console.error('Database error:', error);
     return NextResponse.json(
       { 
         success: false, 
@@ -126,10 +141,33 @@ export async function GET(request: Request) {
       );
     }
 
-    const userStamps = claimedStamps.get(userAddress) ?? [];
+    // Query user's claims
+    const userClaims = await db.query.claims.findMany({
+      where: eq(claims.userAddress, userAddress),
+    });
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // Get event details for each claim
+    const userStamps: ChronoStamp[] = [];
+    
+    for (const claim of userClaims) {
+      const event = await db.query.events.findFirst({
+        where: eq(events.id, claim.eventId),
+      });
+      
+      if (event) {
+        userStamps.push({
+          id: claim.id,
+          tokenId: parseInt(claim.tokenId ?? '0'),
+          eventName: event.name,
+          description: event.description,
+          imageUrl: event.imageUrl,
+          contractAddress: event.contractAddress ?? undefined,
+          claimedAt: new Date(claim.claimedAt),
+          eventDate: new Date(event.eventDate),
+          organizer: event.organizer,
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -138,6 +176,7 @@ export async function GET(request: Request) {
     });
 
   } catch (error) {
+    console.error('Database error:', error);
     return NextResponse.json(
       { 
         success: false, 

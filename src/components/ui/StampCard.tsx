@@ -200,10 +200,12 @@ export function StampCard({
   };
 
   const handleCopyAddress = () => {
-    if (onCopy) {
-      onCopy(stamp.contractAddress);
-    } else {
-      void navigator.clipboard.writeText(stamp.contractAddress);
+    if (stamp.contractAddress) {
+      if (onCopy) {
+        onCopy(stamp.contractAddress);
+      } else {
+        void navigator.clipboard.writeText(stamp.contractAddress);
+      }
     }
   };
 

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { mockEvents } from '~/lib/mockData';
+import { eq } from 'drizzle-orm';
+import { db } from '~/server/db';
+import { events } from '~/server/db/schema';
 
 export async function GET(
   request: Request,
@@ -8,8 +10,10 @@ export async function GET(
   try {
     const { id } = await context.params;
 
-    // Find event by ID
-    const event = mockEvents.find(e => e.id === id);
+    // Find event by ID in database
+    const event = await db.query.events.findFirst({
+      where: eq(events.id, id),
+    });
     
     if (!event) {
       return NextResponse.json(
@@ -22,12 +26,19 @@ export async function GET(
       );
     }
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-
     // Add some additional details for single event view
     const eventDetails = {
-      ...event,
+      id: event.id,
+      name: event.name,
+      description: event.description,
+      imageUrl: event.imageUrl,
+      contractAddress: event.contractAddress ?? undefined,
+      eventCode: event.eventCode,
+      organizer: event.organizer,
+      createdAt: new Date(event.createdAt),
+      eventDate: new Date(event.eventDate),
+      totalClaimed: event.totalClaimed,
+      maxSupply: event.maxSupply,
       stats: {
         totalClaimed: event.totalClaimed,
         maxSupply: event.maxSupply,
@@ -48,6 +59,7 @@ export async function GET(
     });
 
   } catch (error) {
+    console.error('Database error:', error);
     return NextResponse.json(
       { 
         success: false, 

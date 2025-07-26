@@ -17,13 +17,15 @@ This application will combine a client-side user interface with a lightweight, s
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js with TypeScript
+- **Framework**: Next.js 15 with TypeScript and App Router
+- **Database**: Turso (LibSQL) with Drizzle ORM - dual environment setup
 - **Web3 Libraries**:
   - Ethers.js for smart contract interactions
-  - RainbowKit for wallet connections
-- **Styling**: Tailwind CSS
-- **Database**: Drizzle ORM
+  - RainbowKit + Wagmi for wallet connections
+- **Styling**: Tailwind CSS v4
 - **Storage**: IPFS via Pinata
+- **State Management**: Zustand
+- **Environment**: T3 env validation with Zod
 - **Deployment**: Vercel
 
 ## 🚀 Getting Started
@@ -31,6 +33,7 @@ This application will combine a client-side user interface with a lightweight, s
 ### Prerequisites
 
 - Node.js 18+ and pnpm
+- Turso CLI (for database management)
 
 ### Installation
 
@@ -38,7 +41,7 @@ This application will combine a client-side user interface with a lightweight, s
 
    ```bash
    git clone <repository-url>
-   cd chronostamp-app
+   cd chronostamp
    ```
 
 2. **Install dependencies**
@@ -47,13 +50,35 @@ This application will combine a client-side user interface with a lightweight, s
    pnpm install
    ```
 
-3. **Run the development server**
+3. **Environment setup**
+
+   ```bash
+   # Copy environment template
+   cp .env.example .env
+   
+   # Edit .env with your configuration:
+   # - Turso database URLs and tokens
+   # - Pinata JWT for IPFS
+   # - Signer private keys
+   ```
+
+4. **Database setup**
+
+   ```bash
+   # Push schema to database
+   pnpm db:push
+   
+   # Insert demo data
+   pnpm db:seed
+   ```
+
+5. **Run the development server**
 
    ```bash
    pnpm dev
    ```
 
-4. **Open your browser**
+6. **Open your browser**
 
    Navigate to [http://localhost:3000](http://localhost:3000)
 
@@ -61,11 +86,38 @@ This application will combine a client-side user interface with a lightweight, s
 
 ```
 src/
-├── app/                 # Next.js app router pages
+├── app/                 # Next.js app router pages and API routes
+│   ├── api/            # API endpoints (IPFS, signatures, events, claims)
+│   ├── create/         # Event creation page
+│   ├── event/[id]/     # Event details and claiming page
+│   ├── profile/        # User profile and NFT collection
 │   ├── page.tsx        # Homepage
 │   └── layout.tsx      # Root layout
+├── components/         # Reusable UI components
+│   ├── ui/            # Basic UI components (Button, Card, etc.)
+│   ├── layout/        # Layout components (Header, Footer)
+│   ├── sections/      # Page sections (HeroSection, etc.)
+│   ├── forms/         # Form components (CreateEventForm, etc.)
+│   └── web3/          # Web3-specific components
+├── lib/               # Utility functions and helpers
 ├── server/            # Database configuration and schemas
+│   └── db/           # Drizzle ORM setup and schema definitions
+├── stores/            # Zustand state management
+├── providers/         # React context providers
 └── styles/            # Global styles and Tailwind CSS
+```
+
+## 🗄️ Database Commands
+
+```bash
+# Schema management
+pnpm db:generate        # Generate Drizzle migrations
+pnpm db:push           # Push schema to database
+pnpm db:studio         # Open Drizzle Studio
+
+# Data management
+pnpm db:seed           # Insert demo data (development)
+pnpm db:seed:prod      # Insert demo data (production)
 ```
 
 ## 🤝 Contributing

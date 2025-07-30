@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useRef, type ChangeEvent } from "react";
+import {
+  useState,
+  useRef,
+  type ChangeEvent,
+  useCallback,
+  useEffect,
+} from "react";
 import { Button } from "~/components/ui/Button";
 import {
   Card,
@@ -34,6 +40,9 @@ interface CreateEventFormProps {
   }) => void;
 }
 
+// Event code validation states
+type EventCodeStatus = "idle" | "checking" | "available" | "taken" | "error";
+
 export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   const [formData, setFormData] = useState({
     name: "",
@@ -44,6 +53,9 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [eventCodeStatus, setEventCodeStatus] =
+    useState<EventCodeStatus>("idle");
+  const [eventCodeMessage, setEventCodeMessage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user, setLoading, ui } = useAppStore();
@@ -51,6 +63,58 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
   // Wagmi hooks for contract interaction
   const { writeContract } = useWriteContract();
+
+  // Debounced event code checker
+  const checkEventCodeAvailability = useCallback(async (eventCode: string) => {
+    if (!eventCode || eventCode.length < 3) {
+      setEventCodeStatus("idle");
+      setEventCodeMessage("");
+      return;
+    }
+
+    setEventCodeStatus("checking");
+    setEventCodeMessage("Checking availability...");
+
+    try {
+      // Call the events API to check if code exists
+      const response = await fetch(
+        `/api/events?eventCode=${encodeURIComponent(eventCode.toUpperCase())}`,
+      );
+      const data = (await response.json()) as {
+        success: boolean;
+        data?: unknown[];
+      };
+
+      if (data.success && data.data) {
+        // Check if any event with this code exists
+        const codeExists = Array.isArray(data.data) && data.data.length > 0;
+
+        if (codeExists) {
+          setEventCodeStatus("taken");
+          setEventCodeMessage("This event code is already taken");
+        } else {
+          setEventCodeStatus("available");
+          setEventCodeMessage("Event code is available!");
+        }
+      } else {
+        setEventCodeStatus("available");
+        setEventCodeMessage("Event code is available!");
+      }
+    } catch (error) {
+      console.error("Error checking event code:", error);
+      setEventCodeStatus("error");
+      setEventCodeMessage("Unable to check availability");
+    }
+  }, []);
+
+  // Debounce timer
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void checkEventCodeAvailability(formData.eventCode);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [formData.eventCode, checkEventCodeAvailability]);
 
   const handleInputChange = (field: string, value: string) => {
     const newFormData = { ...formData, [field]: value };
@@ -373,20 +437,103 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           >
             Secret Event Code *
           </label>
-          <Input
-            id="eventCode"
-            placeholder="e.g., DEVCONF2024SECRET"
-            value={formData.eventCode}
-            onChange={(e) =>
-              handleInputChange("eventCode", e.target.value.toUpperCase())
-            }
-            disabled={ui.isLoading}
-            className="h-12 font-mono text-sm sm:h-auto sm:text-base"
-          />
+          <div className="relative">
+            <Input
+              id="eventCode"
+              placeholder="e.g., DEVCONF2025SECRET"
+              value={formData.eventCode}
+              onChange={(e) =>
+                handleInputChange("eventCode", e.target.value.toUpperCase())
+              }
+              disabled={ui.isLoading}
+              className={`h-12 pr-10 font-mono text-sm sm:h-auto sm:text-base ${
+                eventCodeStatus === "available"
+                  ? "border-green-300 focus:border-green-500"
+                  : eventCodeStatus === "taken"
+                    ? "border-red-300 focus:border-red-500"
+                    : "border-gray-300"
+              }`}
+            />
+            {/* Status indicator */}
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+              {eventCodeStatus === "checking" && (
+                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-gray-400"></div>
+              )}
+              {eventCodeStatus === "available" && (
+                <svg
+                  className="h-4 w-4 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              )}
+              {eventCodeStatus === "taken" && (
+                <svg
+                  className="h-4 w-4 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              )}
+              {eventCodeStatus === "error" && (
+                <svg
+                  className="h-4 w-4 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              )}
+            </div>
+          </div>
           <p className="mt-1 text-xs text-gray-500">
             This secret code will be revealed to attendees at the event to claim
             their ChronoStamp
           </p>
+          {eventCodeStatus === "checking" && (
+            <p className="mt-1 flex items-center text-xs text-gray-500">
+              <span className="mr-1">⏳</span>
+              {eventCodeMessage}
+            </p>
+          )}
+          {eventCodeStatus === "available" && (
+            <p className="mt-1 flex items-center text-xs text-green-600">
+              <span className="mr-1">✅</span>
+              {eventCodeMessage}
+            </p>
+          )}
+          {eventCodeStatus === "taken" && (
+            <p className="mt-1 flex items-center text-xs text-red-600">
+              <span className="mr-1">❌</span>
+              {eventCodeMessage}
+            </p>
+          )}
+          {eventCodeStatus === "error" && (
+            <p className="mt-1 flex items-center text-xs text-red-600">
+              <span className="mr-1">⚠️</span>
+              {eventCodeMessage}
+            </p>
+          )}
         </div>
 
         {/* Event Image */}
@@ -481,7 +628,9 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               !formData.name ||
               !formData.description ||
               !formData.eventCode ||
-              !imageFile
+              !imageFile ||
+              eventCodeStatus === "taken" ||
+              eventCodeStatus === "checking"
             }
             className="h-12 w-full text-sm sm:h-14 sm:text-base"
             size="lg"
@@ -500,9 +649,21 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             <p className="mt-3 text-center text-xs text-gray-400 sm:text-sm">
               Fill in all required fields to continue
             </p>
-          ) : (
+          ) : eventCodeStatus === "taken" ? (
+            <p className="mt-3 text-center text-xs text-red-600 sm:text-sm">
+              ❌ Event code is already taken, please choose another
+            </p>
+          ) : eventCodeStatus === "checking" ? (
+            <p className="mt-3 text-center text-xs text-gray-500 sm:text-sm">
+              ⏳ Checking event code availability...
+            </p>
+          ) : eventCodeStatus === "available" ? (
             <p className="mt-3 text-center text-xs text-green-600 sm:text-sm">
-              ✓ Ready to create your event!
+              ✅ Ready to create your event!
+            </p>
+          ) : (
+            <p className="mt-3 text-center text-xs text-gray-400 sm:text-sm">
+              Enter an event code to continue
             </p>
           )}
         </div>

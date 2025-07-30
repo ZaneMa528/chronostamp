@@ -4,7 +4,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
-import { arbitrum } from "wagmi/chains";
+// import { arbitrum } from "wagmi/chains";
 
 const arbitrumSepolia = {
   id: 421614,
@@ -23,8 +23,8 @@ const arbitrumSepolia = {
     default: { name: "Arbiscan", url: "https://sepolia.arbiscan.io" },
   },
   testnet: true,
-  // iconUrl: '', 
-  // iconBackground: '#fff', 
+  // iconUrl: '',
+  // iconBackground: '#fff',
 };
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
@@ -32,7 +32,8 @@ const config = getDefaultConfig({
   appName: "ChronoStamp Protocol",
   projectId:
     process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "demo-project-id",
-  chains: [arbitrum, arbitrumSepolia],
+  // chains: [arbitrum, arbitrumSepolia],
+  chains: [arbitrumSepolia], // keep testnet for now
   ssr: true,
 });
 

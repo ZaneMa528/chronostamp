@@ -16,9 +16,7 @@ const createDbClient = (): Client => {
   const isDevelopment = env.NODE_ENV === "development";
   
   return createClient({ 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     url: isDevelopment ? env.DATABASE_URL_DEV : env.DATABASE_URL_PROD,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     authToken: isDevelopment ? env.DATABASE_AUTH_TOKEN_DEV : env.DATABASE_AUTH_TOKEN_PROD,
   });
 };

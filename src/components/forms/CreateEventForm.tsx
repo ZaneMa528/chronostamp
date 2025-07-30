@@ -75,7 +75,12 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.description || !formData.eventCode || !imageFile) {
+    if (
+      !formData.name ||
+      !formData.description ||
+      !formData.eventCode ||
+      !imageFile
+    ) {
       showWarning("Please fill in all required fields and upload an image");
       return;
     }
@@ -90,14 +95,14 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
       // Step 1: Upload image to IPFS
       const imageFormData = new FormData();
-      imageFormData.append('file', imageFile);
+      imageFormData.append("file", imageFile);
 
-      const imageResponse = await fetch('/api/upload-image', {
-        method: 'POST',
+      const imageResponse = await fetch("/api/upload-image", {
+        method: "POST",
         body: imageFormData,
       });
 
-      const imageResult = await imageResponse.json() as {
+      const imageResult = (await imageResponse.json()) as {
         success: boolean;
         message?: string;
         data?: {
@@ -105,18 +110,18 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           gatewayUrl: string;
         };
       };
-      
+
       if (!imageResult.success) {
-        throw new Error(imageResult.message ?? 'Failed to upload image');
+        throw new Error(imageResult.message ?? "Failed to upload image");
       }
 
       setLoading(true, "Uploading metadata to IPFS...");
 
       // Step 2: Upload metadata to IPFS
-      const metadataResponse = await fetch('/api/upload-metadata', {
-        method: 'POST',
+      const metadataResponse = await fetch("/api/upload-metadata", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: formData.name,
@@ -128,60 +133,76 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
         }),
       });
 
-      const metadataResult = await metadataResponse.json() as {
+      const metadataResult = (await metadataResponse.json()) as {
         success: boolean;
         message?: string;
+        data?: {
+          ipfsHash: string;
+        };
       };
-      
-      if (!metadataResult.success) {
-        throw new Error(metadataResult.message ?? 'Failed to upload metadata');
+
+      if (!metadataResult.success || !metadataResult.data?.ipfsHash) {
+        throw new Error(
+          metadataResult.message ??
+            "Failed to upload metadata or get IPFS hash",
+        );
       }
 
-      setLoading(true, "Creating event...");
+      const metadataIpfsHash = metadataResult.data.ipfsHash;
+
+      setLoading(true, "Creating event on-chain...");
 
       // Step 3: Create event with IPFS URLs
       const response = await ApiClient.createEvent({
         name: formData.name,
         description: formData.description,
-        imageUrl: imageResult.data?.gatewayUrl ?? '', // Use gateway URL for display
+        imageUrl: imageResult.data?.gatewayUrl ?? "", // Use gateway URL for display
         eventCode: formData.eventCode.toUpperCase(),
         organizer: user.address ?? "Unknown",
         eventDate: new Date(formData.eventDate || Date.now()),
         maxSupply: formData.maxSupply
           ? parseInt(formData.maxSupply)
           : undefined,
+        metadataIpfsHash, // Pass the metadata hash to the backend
       });
 
       if (!response.success) {
-        throw new Error(response.message ?? response.error ?? 'Failed to create event');
+        throw new Error(
+          response.message ?? response.error ?? "Failed to create event",
+        );
       }
 
-      showSuccess(
-        `ChronoStamp event created successfully! 🎉`,
-        {
-          title: 'Event Created',
-          duration: 10000,
-          actions: [
-            {
-              label: 'Copy Event Code',
-              onClick: () => {
-                void navigator.clipboard.writeText(response.data?.eventCode ?? '');
-                showSuccess('Event code copied to clipboard!');
-              }
+      showSuccess(`ChronoStamp event created successfully! 🎉`, {
+        title: "Event Created",
+        duration: 10000,
+        actions: [
+          {
+            label: "Copy Event Code",
+            onClick: () => {
+              void navigator.clipboard.writeText(
+                response.data?.eventCode ?? "",
+              );
+              showSuccess("Event code copied to clipboard!");
             },
-            {
-              label: 'View Event',
-              onClick: () => {
-                window.location.href = `/event/${response.data?.id}`;
-              },
-              variant: 'outline'
-            }
-          ]
-        }
-      );
+          },
+          {
+            label: "View Event",
+            onClick: () => {
+              window.location.href = `/event/${response.data?.id}`;
+            },
+            variant: "outline",
+          },
+        ],
+      });
 
       // Reset form
-      setFormData({ name: "", description: "", eventCode: "", eventDate: "", maxSupply: "" });
+      setFormData({
+        name: "",
+        description: "",
+        eventCode: "",
+        eventDate: "",
+        maxSupply: "",
+      });
       setImageFile(null);
       setImagePreview("");
       onPreviewUpdate({ name: "", description: "", imageUrl: "" });
@@ -253,12 +274,15 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             id="eventCode"
             placeholder="e.g., DEVCONF2024SECRET"
             value={formData.eventCode}
-            onChange={(e) => handleInputChange("eventCode", e.target.value.toUpperCase())}
+            onChange={(e) =>
+              handleInputChange("eventCode", e.target.value.toUpperCase())
+            }
             disabled={ui.isLoading}
-            className="font-mono h-12 sm:h-auto text-sm sm:text-base"
+            className="h-12 font-mono text-sm sm:h-auto sm:text-base"
           />
           <p className="mt-1 text-xs text-gray-500">
-            This secret code will be revealed to attendees at the event to claim their ChronoStamp
+            This secret code will be revealed to attendees at the event to claim
+            their ChronoStamp
           </p>
         </div>
 
@@ -270,7 +294,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           >
             Event Artwork *
           </label>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <Button
               type="button"
               variant="outline"
@@ -281,7 +305,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               {imageFile ? "Change Image" : "Upload Image"}
             </Button>
             {imageFile && (
-              <span className="text-xs sm:text-sm text-gray-600 truncate">
+              <span className="truncate text-xs text-gray-600 sm:text-sm">
                 {imageFile.name}
               </span>
             )}
@@ -300,7 +324,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
                 alt="Event preview"
                 width={96}
                 height={96}
-                className="sm:w-32 sm:h-32 rounded-lg border object-cover"
+                className="rounded-lg border object-cover sm:h-32 sm:w-32"
               />
             </div>
           )}
@@ -356,22 +380,25 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               !formData.eventCode ||
               !imageFile
             }
-            className="w-full h-12 sm:h-14 text-sm sm:text-base"
+            className="h-12 w-full text-sm sm:h-14 sm:text-base"
             size="lg"
           >
             {ui.isLoading ? ui.loadingMessage : "Create ChronoStamp Event"}
           </Button>
 
           {!user.isConnected ? (
-            <p className="mt-3 text-center text-xs sm:text-sm text-gray-500">
+            <p className="mt-3 text-center text-xs text-gray-500 sm:text-sm">
               Connect your wallet to create events
             </p>
-          ) : !formData.name || !formData.description || !formData.eventCode || !imageFile ? (
-            <p className="mt-3 text-center text-xs sm:text-sm text-gray-400">
+          ) : !formData.name ||
+            !formData.description ||
+            !formData.eventCode ||
+            !imageFile ? (
+            <p className="mt-3 text-center text-xs text-gray-400 sm:text-sm">
               Fill in all required fields to continue
             </p>
           ) : (
-            <p className="mt-3 text-center text-xs sm:text-sm text-green-600">
+            <p className="mt-3 text-center text-xs text-green-600 sm:text-sm">
               ✓ Ready to create your event!
             </p>
           )}

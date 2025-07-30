@@ -17,6 +17,9 @@ export const env = createEnv({
     PINATA_JWT: z.string().min(1),
     SIGNER_PRIVATE_KEY_DEV: z.string().regex(/^0x[a-fA-F0-9]{64}$/, "Invalid dev private key format"),
     SIGNER_PRIVATE_KEY_PROD: z.string().regex(/^0x[a-fA-F0-9]{64}$/, "Invalid prod private key format"),
+    // Smart contract deployment (optional for gradual rollout)
+    RPC_URL: z.string().url().optional(),
+    FACTORY_CONTRACT_ADDRESS: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid contract address format").optional(),
   },
 
   /**
@@ -44,6 +47,9 @@ export const env = createEnv({
     SIGNER_PRIVATE_KEY_PROD: process.env.SIGNER_PRIVATE_KEY_PROD,
     NEXT_PUBLIC_SIGNER_ADDRESS_DEV: process.env.NEXT_PUBLIC_SIGNER_ADDRESS_DEV,
     NEXT_PUBLIC_SIGNER_ADDRESS_PROD: process.env.NEXT_PUBLIC_SIGNER_ADDRESS_PROD,
+    // Smart contract deployment
+    RPC_URL: process.env.RPC_URL,
+    FACTORY_CONTRACT_ADDRESS: process.env.FACTORY_CONTRACT_ADDRESS,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

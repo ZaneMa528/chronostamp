@@ -1,6 +1,6 @@
-import type { Event, ChronoStamp } from '~/stores/useAppStore';
+import type { Event, ChronoStamp } from "~/stores/useAppStore";
 
-const API_BASE = '';
+const API_BASE = "";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -22,72 +22,88 @@ interface ClaimResponse {
 export class ApiClient {
   private static async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     const url = `${API_BASE}/api${endpoint}`;
-    
+
     try {
       const response = await fetch(url, {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...options.headers,
         },
         ...options,
       });
 
+      const data = (await response.json()) as ApiResponse<T>;
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Return the error response with details instead of throwing generic error
+        return {
+          success: false,
+          error: data.error ?? `HTTP error! status: ${response.status}`,
+          message: data.message ?? `Request failed with status ${response.status}`,
+        };
       }
 
-      const data = await response.json() as ApiResponse<T>;
       return data;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error("API request failed:", error);
       return {
         success: false,
-        error: 'Failed to fetch',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        error: "Failed to fetch",
+        message: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
 
   // Events API
   static async getEvents(): Promise<ApiResponse<Event[]>> {
-    return this.request<Event[]>('/events');
+    return this.request<Event[]>("/events");
   }
 
-  static async getUserCreatedEvents(userAddress: string): Promise<ApiResponse<Event[]>> {
-    return this.request<Event[]>(`/events?organizer=${encodeURIComponent(userAddress)}`);
+  static async getUserCreatedEvents(
+    userAddress: string,
+  ): Promise<ApiResponse<Event[]>> {
+    return this.request<Event[]>(
+      `/events?organizer=${encodeURIComponent(userAddress)}`,
+    );
   }
 
-  static async getEvent(id: string): Promise<ApiResponse<Event & { 
-    stats: {
-      totalClaimed: number;
-      maxSupply?: number;
-      remainingSupply?: number;
-      claimRate?: number;
-    };
-    metadata: {
-      blockchain: string;
-      tokenStandard: string;
-      royalty: string;
-      ipfsHash: string;
-    };
-  }>> {
-    return this.request<Event & { 
-      stats: {
-        totalClaimed: number;
-        maxSupply?: number;
-        remainingSupply?: number;
-        claimRate?: number;
-      };
-      metadata: {
-        blockchain: string;
-        tokenStandard: string;
-        royalty: string;
-        ipfsHash: string;
-      };
-    }>(`/events/${id}`);
+  static async getEvent(id: string): Promise<
+    ApiResponse<
+      Event & {
+        stats: {
+          totalClaimed: number;
+          maxSupply?: number;
+          remainingSupply?: number;
+          claimRate?: number;
+        };
+        metadata: {
+          blockchain: string;
+          tokenStandard: string;
+          royalty: string;
+          ipfsHash: string;
+        };
+      }
+    >
+  > {
+    return this.request<
+      Event & {
+        stats: {
+          totalClaimed: number;
+          maxSupply?: number;
+          remainingSupply?: number;
+          claimRate?: number;
+        };
+        metadata: {
+          blockchain: string;
+          tokenStandard: string;
+          royalty: string;
+          ipfsHash: string;
+        };
+      }
+    >(`/events/${id}`);
   }
 
   static async createEvent(eventData: {
@@ -98,9 +114,10 @@ export class ApiClient {
     organizer: string;
     eventDate: Date;
     maxSupply?: number;
+    metadataIpfsHash: string;
   }): Promise<ApiResponse<Event>> {
-    return this.request<Event>('/events', {
-      method: 'POST',
+    return this.request<Event>("/events", {
+      method: "POST",
       body: JSON.stringify(eventData),
     });
   }
@@ -108,15 +125,19 @@ export class ApiClient {
   // Claim API
   static async claimStamp(
     eventCode: string,
-    userAddress: string
+    userAddress: string,
   ): Promise<ApiResponse<ClaimResponse>> {
-    return this.request<ClaimResponse>('/claim', {
-      method: 'POST',
+    return this.request<ClaimResponse>("/claim", {
+      method: "POST",
       body: JSON.stringify({ eventCode, userAddress }),
     });
   }
 
-  static async getUserStamps(userAddress: string): Promise<ApiResponse<ChronoStamp[]>> {
-    return this.request<ChronoStamp[]>(`/claim?address=${encodeURIComponent(userAddress)}`);
+  static async getUserStamps(
+    userAddress: string,
+  ): Promise<ApiResponse<ChronoStamp[]>> {
+    return this.request<ChronoStamp[]>(
+      `/claim?address=${encodeURIComponent(userAddress)}`,
+    );
   }
 }

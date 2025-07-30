@@ -53,13 +53,14 @@ export class ApiClient {
       });
 
       const data = (await response.json()) as ApiResponse<T>;
-      
+
       if (!response.ok) {
         // Return the error response with details instead of throwing generic error
         return {
           success: false,
           error: data.error ?? `HTTP error! status: ${response.status}`,
-          message: data.message ?? `Request failed with status ${response.status}`,
+          message:
+            data.message ?? `Request failed with status ${response.status}`,
         };
       }
 
@@ -131,6 +132,7 @@ export class ApiClient {
     organizer: string;
     eventDate: Date;
     maxSupply?: number;
+    contractAddress: string;
     metadataIpfsHash: string;
   }): Promise<ApiResponse<Event>> {
     return this.request<Event>("/events", {
@@ -179,8 +181,11 @@ export class ApiClient {
   ): Promise<ApiResponse<ClaimResponse>> {
     // This method is kept for compatibility but should be replaced with Web3 flow
     // For now, it just gets the signature - frontend should handle the rest
-    const signatureResponse = await this.getClaimSignature(eventCode, userAddress);
-    
+    const signatureResponse = await this.getClaimSignature(
+      eventCode,
+      userAddress,
+    );
+
     if (!signatureResponse.success) {
       return {
         success: false,
@@ -188,9 +193,11 @@ export class ApiClient {
         message: signatureResponse.message,
       };
     }
-    
+
     // Return a response indicating Web3 interaction is needed
-    throw new Error('Web3 interaction required - use getClaimSignature() instead');
+    throw new Error(
+      "Web3 interaction required - use getClaimSignature() instead",
+    );
   }
 
   static async getUserStamps(

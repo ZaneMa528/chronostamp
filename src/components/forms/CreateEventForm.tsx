@@ -16,6 +16,15 @@ import { useAppStore } from "~/stores/useAppStore";
 import { useNotificationStore } from "~/stores/useNotificationStore";
 import { ApiClient } from "~/lib/api";
 import Image from "next/image";
+import { useWriteContract } from "wagmi";
+import { parseAbi } from "viem";
+
+// Factory contract configurations
+const FACTORY_CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_FACTORY_CONTRACT_ADDRESS as `0x${string}`;
+const FACTORY_ABI = parseAbi([
+  "function createNewBadge(string memory name, string memory symbol, string memory baseTokenURI, address trustedSigner) external returns (address)",
+]);
 
 interface CreateEventFormProps {
   onPreviewUpdate: (data: {
@@ -39,6 +48,9 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
   const { user, setLoading, ui } = useAppStore();
   const { showSuccess, showError, showWarning } = useNotificationStore();
+
+  // Wagmi hooks for contract interaction
+  const { writeContract } = useWriteContract();
 
   const handleInputChange = (field: string, value: string) => {
     const newFormData = { ...formData, [field]: value };
@@ -150,20 +162,111 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
       const metadataIpfsHash = metadataResult.data.ipfsHash;
 
-      setLoading(true, "Creating event on-chain...");
+      setLoading(true, "Deploying contract on-chain...");
 
-      // Step 3: Create event with IPFS URLs
+      // Step 3: Deploy contract using user's wallet
+      if (!FACTORY_CONTRACT_ADDRESS) {
+        throw new Error("Factory contract address not configured");
+      }
+
+      const trustedSigner =
+        process.env.NODE_ENV === "production"
+          ? process.env.NEXT_PUBLIC_SIGNER_ADDRESS_PROD!
+          : process.env.NEXT_PUBLIC_SIGNER_ADDRESS_DEV!;
+
+      const baseTokenURI = `ipfs://${metadataIpfsHash}`;
+
+      // Use wagmi to call the factory contract
+      const contractTxHash = await new Promise<`0x${string}`>(
+        (resolve, reject) => {
+          writeContract(
+            {
+              address: FACTORY_CONTRACT_ADDRESS,
+              abi: FACTORY_ABI,
+              functionName: "createNewBadge",
+              args: [
+                "ChronoStamp Badge", // name
+                "CSB", // symbol
+                baseTokenURI,
+                trustedSigner as `0x${string}`,
+              ],
+            },
+            {
+              onSuccess: (hash) => resolve(hash),
+              onError: (error) =>
+                reject(
+                  error instanceof Error
+                    ? error
+                    : new Error(error?.message ?? "Contract deployment failed"),
+                ),
+            },
+          );
+        },
+      );
+
+      setLoading(true, "Waiting for contract deployment confirmation...");
+
+      // Wait for transaction to be mined using fetch
+      let receipt: { logs?: Array<{ address?: string }> } | null = null;
+      let attempts = 0;
+      const maxAttempts = 30; // Wait up to 30 * 2 = 60 seconds
+
+      while (!receipt && attempts < maxAttempts) {
+        try {
+          const response = await fetch(
+            `https://sepolia-rollup.arbitrum.io/rpc`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                jsonrpc: "2.0",
+                method: "eth_getTransactionReceipt",
+                params: [contractTxHash],
+                id: 1,
+              }),
+            },
+          );
+          const result = (await response.json()) as {
+            result?: { logs?: Array<{ address?: string }> };
+          };
+          if (result.result) {
+            receipt = result.result;
+            break;
+          }
+        } catch {
+          console.log("Waiting for transaction confirmation...");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+        attempts++;
+      }
+
+      if (!receipt) {
+        throw new Error("Transaction confirmation timeout");
+      }
+
+      // Get the deployed contract address from logs
+      const contractAddress = receipt.logs?.[0]?.address;
+      if (!contractAddress) {
+        throw new Error(
+          "Failed to get contract address from transaction receipt",
+        );
+      }
+
+      setLoading(true, "Saving event to database...");
+
+      // Step 4: Create event record with deployed contract address
       const response = await ApiClient.createEvent({
         name: formData.name,
         description: formData.description,
-        imageUrl: imageResult.data?.gatewayUrl ?? "", // Use gateway URL for display
+        imageUrl: imageResult.data?.gatewayUrl ?? "",
         eventCode: formData.eventCode.toUpperCase(),
         organizer: user.address ?? "Unknown",
         eventDate: new Date(formData.eventDate || Date.now()),
         maxSupply: formData.maxSupply
           ? parseInt(formData.maxSupply)
           : undefined,
-        metadataIpfsHash, // Pass the metadata hash to the backend
+        contractAddress,
+        metadataIpfsHash,
       });
 
       if (!response.success) {

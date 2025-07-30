@@ -67,6 +67,7 @@ export async function POST(request: Request) {
       eventDate?: string;
       maxSupply?: number;
       metadataIpfsHash?: string;
+      contractAddress?: string;
     };
     const {
       name,
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
       eventDate,
       maxSupply,
       metadataIpfsHash,
+      contractAddress,
     } = body;
 
     // Validate required fields
@@ -85,14 +87,15 @@ export async function POST(request: Request) {
       !description ||
       !eventCode ||
       !organizer ||
-      !metadataIpfsHash
+      !metadataIpfsHash ||
+      !contractAddress
     ) {
       return NextResponse.json(
         {
           success: false,
           error: "Missing required fields",
           message:
-            "Name, description, eventCode, organizer, and metadataIpfsHash are required",
+            "Name, description, eventCode, organizer, metadataIpfsHash, and contractAddress are required",
         },
         { status: 400 },
       );
@@ -117,114 +120,7 @@ export async function POST(request: Request) {
     // Generate unique event ID
     const eventId = `event_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
-    // Smart contract deployment with IPFS metadata (permanent & decentralized)
-    let contractAddress = null;
-    let deployTxHash = null;
-    let blockNumber = null;
-
-    // Check if contract deployment is configured
-    const isContractConfigured = process.env.FACTORY_CONTRACT_ADDRESS && process.env.RPC_URL;
-
-    if (isContractConfigured && metadataIpfsHash) {
-      try {
-        // 1. Use IPFS hash from frontend as baseTokenURI
-        const baseTokenURI = `ipfs://${metadataIpfsHash}`;
-
-        // 2. Deploy contract with IPFS baseTokenURI
-        const { ethers } = await import("ethers");
-        const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-        const deployPrivateKey =
-          process.env.NODE_ENV === "production"
-            ? process.env.SIGNER_PRIVATE_KEY_PROD!
-            : process.env.SIGNER_PRIVATE_KEY_DEV!;
-        const wallet = new ethers.Wallet(deployPrivateKey, provider);
-
-        const trustedSigner =
-          process.env.NODE_ENV === "production"
-            ? process.env.NEXT_PUBLIC_SIGNER_ADDRESS_PROD!
-            : process.env.NEXT_PUBLIC_SIGNER_ADDRESS_DEV!;
-
-        const factoryContract = new ethers.Contract(
-          process.env.FACTORY_CONTRACT_ADDRESS!,
-          [
-            "function createNewBadge(string memory name, string memory symbol, string memory baseTokenURI, address trustedSigner) external returns (address)",
-          ],
-          wallet,
-        ) as unknown as {
-          createNewBadge: (
-            name: string,
-            symbol: string,
-            baseTokenURI: string,
-            trustedSigner: string,
-          ) => Promise<{
-            hash: string;
-            wait: () => Promise<{
-              contractAddress?: string;
-              logs: Array<{ address: string }>;
-              blockNumber: number;
-            }>;
-          }>;
-        };
-
-        const tx = await factoryContract.createNewBadge(
-          "ChronoStamp Badge", // name
-          "CSB", // symbol
-          baseTokenURI,
-          trustedSigner,
-        );
-        const receipt = await tx.wait();
-
-        contractAddress =
-          receipt.contractAddress ?? receipt.logs[0]?.address ?? null;
-        deployTxHash = tx.hash;
-        blockNumber = receipt.blockNumber;
-
-        console.log(`✅ Contract deployed: ${contractAddress}`);
-        console.log(`📄 IPFS Metadata: ipfs://${metadataIpfsHash}`);
-      } catch (contractError) {
-        console.error("Contract deployment failed:", contractError);
-        
-        // Provide specific error messages based on error type
-        let errorMessage = "Contract deployment failed";
-        let statusCode = 500; // Default to server error
-        
-        if (contractError instanceof Error) {
-          if (contractError.message.includes("insufficient funds")) {
-            errorMessage = "Insufficient funds for contract deployment. Please ensure the deployer address has enough ETH for gas fees.";
-            statusCode = 400; // Client error - user needs to add funds
-          } else if (contractError.message.includes("execution reverted")) {
-            errorMessage = "Contract deployment was reverted. Please check contract permissions and parameters.";
-            statusCode = 400; // Client error - configuration issue
-          } else if (contractError.message.includes("network") || contractError.message.includes("timeout")) {
-            errorMessage = "Network error during contract deployment. Please try again.";
-            statusCode = 503; // Service unavailable
-          } else {
-            errorMessage = `Contract deployment failed: ${contractError.message}`;
-            statusCode = 500; // Server error for unknown issues
-          }
-        }
-
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Contract deployment failed",
-            message: errorMessage,
-          },
-          { status: statusCode },
-        );
-      }
-    } else if (isContractConfigured && !metadataIpfsHash) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Missing IPFS metadata",
-          message: "IPFS metadata hash is required for contract deployment",
-        },
-        { status: 400 },
-      );
-    }
-
-    // Create new event in database
+    // Create new event in database (contract already deployed by frontend)
     const newEventData = {
       id: eventId,
       name,
@@ -232,7 +128,7 @@ export async function POST(request: Request) {
       imageUrl:
         imageUrl ??
         "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&h=500&fit=crop",
-      contractAddress, // Real contract address (null if deployment failed)
+      contractAddress, // Contract address from frontend
       eventCode: eventCode.toUpperCase(),
       organizer,
       eventDate: new Date(eventDate ?? Date.now() + 30 * 24 * 60 * 60 * 1000), // Default to 30 days from now
@@ -276,14 +172,10 @@ export async function POST(request: Request) {
           metadataUrl: `ipfs://${metadataIpfsHash}`,
           metadataGatewayUrl: `https://gateway.pinata.cloud/ipfs/${metadataIpfsHash}`,
         }),
-        ...(deployTxHash && { deployTxHash }),
-        ...(blockNumber && { blockNumber }),
+        ...(contractAddress && { contractAddress }),
       },
-      message: contractAddress
-        ? "Event and contract created successfully with IPFS metadata"
-        : isContractConfigured 
-          ? "Event created successfully (contract deployment was not attempted due to missing metadata)"
-          : "Event created successfully (contract deployment not configured)",
+      message:
+        "Event created successfully (contract address provided by frontend)",
     });
   } catch (error) {
     console.error("Database error:", error);

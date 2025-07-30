@@ -93,12 +93,14 @@ class SignerManager {
     const checksumAddress = ethers.getAddress(userAddress);
     
     // Construct message hash (consistent with smart contract)
+    // Contract: keccak256(abi.encodePacked(msg.sender, nonce))
     const messageHash = ethers.solidityPackedKeccak256(
       ['address', 'bytes32'],
       [checksumAddress, nonce]
     );
     
-    // Sign message hash
+    // Sign the message hash - ethers.signMessage will add Ethereum prefix automatically
+    // Contract will recreate the same messageHash and add the same prefix for verification
     const signature = await signer.signMessage(ethers.getBytes(messageHash));
     
     return signature;

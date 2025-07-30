@@ -3,6 +3,8 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '~/server/db';
 import { events, claims } from '~/server/db/schema';
 import type { ChronoStamp } from '~/stores/useAppStore';
+import { signMessage, generateNonce, validateSignerConfig } from '~/lib/signer';
+import { env } from '~/env';
 
 export async function POST(request: Request) {
   try {
@@ -68,47 +70,66 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate transaction hash (simulate blockchain transaction)
-    const transactionHash = `0x${Math.random().toString(16).slice(2, 66)}`;
-    const tokenId = (event.totalClaimed + 1).toString();
+    // Validate event has contract address for on-chain claiming
+    if (!event.contractAddress) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Contract not deployed',
+          message: 'This event does not have a smart contract deployed yet'
+        },
+        { status: 400 }
+      );
+    }
 
-    // Create new claim record in database
-    await db.insert(claims).values({
-      userAddress,
-      eventId: event.id,
-      tokenId,
-      transactionHash,
-    });
+    // Validate signer configuration
+    if (!validateSignerConfig()) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Server configuration error',
+          message: 'Signature service is not properly configured'
+        },
+        { status: 500 }
+      );
+    }
 
-    // Update event's total claimed count
-    await db.update(events)
-      .set({ totalClaimed: event.totalClaimed + 1 })
-      .where(eq(events.id, event.id));
+    // Validate RPC configuration for contract interaction
+    if (!env.RPC_URL) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'RPC not configured',
+          message: 'Blockchain RPC endpoint is not configured'
+        },
+        { status: 500 }
+      );
+    }
 
-    // Create ChronoStamp response
-    const newStamp: ChronoStamp = {
-      id: Date.now(),
-      tokenId: parseInt(tokenId),
-      eventName: event.name,
-      description: event.description,
-      imageUrl: event.imageUrl,
-      contractAddress: event.contractAddress ?? undefined,
-      claimedAt: new Date(),
-      eventDate: new Date(event.eventDate),
-      organizer: event.organizer,
-    };
+    // Generate nonce and signature for user to claim on contract
+    const nonce = generateNonce();
+    const signature = await signMessage(userAddress, nonce);
 
+    // Return signature data for frontend to execute contract call
     return NextResponse.json({
       success: true,
       data: {
-        stamp: newStamp,
-        transaction: {
-          hash: transactionHash,
-          blockNumber: Math.floor(Math.random() * 1000000) + 18000000,
-          gasUsed: Math.floor(Math.random() * 50000) + 21000,
+        contractAddress: event.contractAddress,
+        signature,
+        nonce,
+        userAddress,
+        eventCode: event.eventCode,
+        eventName: event.name,
+        eventId: event.id,
+        eventData: {
+          name: event.name,
+          description: event.description,
+          imageUrl: event.imageUrl,
+          eventDate: event.eventDate,
+          organizer: event.organizer,
         }
       },
-      message: 'ChronoStamp claimed successfully!',
+      message: 'Signature generated, please confirm transaction in your wallet',
     });
 
   } catch (error) {

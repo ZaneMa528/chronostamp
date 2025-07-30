@@ -16,6 +16,15 @@ import { useAppStore } from "~/stores/useAppStore";
 import { useNotificationStore } from "~/stores/useNotificationStore";
 import { ApiClient } from "~/lib/api";
 import Image from "next/image";
+import { useWriteContract } from "wagmi";
+import { parseAbi } from "viem";
+
+// Factory contract configurations
+const FACTORY_CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_FACTORY_CONTRACT_ADDRESS as `0x${string}`;
+const FACTORY_ABI = parseAbi([
+  "function createNewBadge(string memory name, string memory symbol, string memory baseTokenURI, address trustedSigner) external returns (address)",
+]);
 
 interface CreateEventFormProps {
   onPreviewUpdate: (data: {
@@ -39,6 +48,9 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
   const { user, setLoading, ui } = useAppStore();
   const { showSuccess, showError, showWarning } = useNotificationStore();
+
+  // Wagmi hooks for contract interaction
+  const { writeContract } = useWriteContract();
 
   const handleInputChange = (field: string, value: string) => {
     const newFormData = { ...formData, [field]: value };
@@ -75,7 +87,12 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.description || !formData.eventCode || !imageFile) {
+    if (
+      !formData.name ||
+      !formData.description ||
+      !formData.eventCode ||
+      !imageFile
+    ) {
       showWarning("Please fill in all required fields and upload an image");
       return;
     }
@@ -90,14 +107,14 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
       // Step 1: Upload image to IPFS
       const imageFormData = new FormData();
-      imageFormData.append('file', imageFile);
+      imageFormData.append("file", imageFile);
 
-      const imageResponse = await fetch('/api/upload-image', {
-        method: 'POST',
+      const imageResponse = await fetch("/api/upload-image", {
+        method: "POST",
         body: imageFormData,
       });
 
-      const imageResult = await imageResponse.json() as {
+      const imageResult = (await imageResponse.json()) as {
         success: boolean;
         message?: string;
         data?: {
@@ -105,18 +122,18 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           gatewayUrl: string;
         };
       };
-      
+
       if (!imageResult.success) {
-        throw new Error(imageResult.message ?? 'Failed to upload image');
+        throw new Error(imageResult.message ?? "Failed to upload image");
       }
 
       setLoading(true, "Uploading metadata to IPFS...");
 
       // Step 2: Upload metadata to IPFS
-      const metadataResponse = await fetch('/api/upload-metadata', {
-        method: 'POST',
+      const metadataResponse = await fetch("/api/upload-metadata", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: formData.name,
@@ -128,60 +145,167 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
         }),
       });
 
-      const metadataResult = await metadataResponse.json() as {
+      const metadataResult = (await metadataResponse.json()) as {
         success: boolean;
         message?: string;
+        data?: {
+          ipfsHash: string;
+        };
       };
-      
-      if (!metadataResult.success) {
-        throw new Error(metadataResult.message ?? 'Failed to upload metadata');
+
+      if (!metadataResult.success || !metadataResult.data?.ipfsHash) {
+        throw new Error(
+          metadataResult.message ??
+            "Failed to upload metadata or get IPFS hash",
+        );
       }
 
-      setLoading(true, "Creating event...");
+      const metadataIpfsHash = metadataResult.data.ipfsHash;
 
-      // Step 3: Create event with IPFS URLs
+      setLoading(true, "Deploying contract on-chain...");
+
+      // Step 3: Deploy contract using user's wallet
+      if (!FACTORY_CONTRACT_ADDRESS) {
+        throw new Error("Factory contract address not configured");
+      }
+
+      const trustedSigner =
+        process.env.NODE_ENV === "production"
+          ? process.env.NEXT_PUBLIC_SIGNER_ADDRESS_PROD!
+          : process.env.NEXT_PUBLIC_SIGNER_ADDRESS_DEV!;
+
+      const baseTokenURI = `ipfs://${metadataIpfsHash}`;
+
+      // Use wagmi to call the factory contract
+      const contractTxHash = await new Promise<`0x${string}`>(
+        (resolve, reject) => {
+          writeContract(
+            {
+              address: FACTORY_CONTRACT_ADDRESS,
+              abi: FACTORY_ABI,
+              functionName: "createNewBadge",
+              args: [
+                "ChronoStamp Badge", // name
+                "CSB", // symbol
+                baseTokenURI,
+                trustedSigner as `0x${string}`,
+              ],
+            },
+            {
+              onSuccess: (hash) => resolve(hash),
+              onError: (error) =>
+                reject(
+                  error instanceof Error
+                    ? error
+                    : new Error(error?.message ?? "Contract deployment failed"),
+                ),
+            },
+          );
+        },
+      );
+
+      setLoading(true, "Waiting for contract deployment confirmation...");
+
+      // Wait for transaction to be mined using fetch
+      let receipt: { logs?: Array<{ address?: string }> } | null = null;
+      let attempts = 0;
+      const maxAttempts = 30; // Wait up to 30 * 2 = 60 seconds
+
+      while (!receipt && attempts < maxAttempts) {
+        try {
+          const response = await fetch(
+            `https://sepolia-rollup.arbitrum.io/rpc`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                jsonrpc: "2.0",
+                method: "eth_getTransactionReceipt",
+                params: [contractTxHash],
+                id: 1,
+              }),
+            },
+          );
+          const result = (await response.json()) as {
+            result?: { logs?: Array<{ address?: string }> };
+          };
+          if (result.result) {
+            receipt = result.result;
+            break;
+          }
+        } catch {
+          console.log("Waiting for transaction confirmation...");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+        attempts++;
+      }
+
+      if (!receipt) {
+        throw new Error("Transaction confirmation timeout");
+      }
+
+      // Get the deployed contract address from logs
+      const contractAddress = receipt.logs?.[0]?.address;
+      if (!contractAddress) {
+        throw new Error(
+          "Failed to get contract address from transaction receipt",
+        );
+      }
+
+      setLoading(true, "Saving event to database...");
+
+      // Step 4: Create event record with deployed contract address
       const response = await ApiClient.createEvent({
         name: formData.name,
         description: formData.description,
-        imageUrl: imageResult.data?.gatewayUrl ?? '', // Use gateway URL for display
+        imageUrl: imageResult.data?.gatewayUrl ?? "",
         eventCode: formData.eventCode.toUpperCase(),
         organizer: user.address ?? "Unknown",
         eventDate: new Date(formData.eventDate || Date.now()),
         maxSupply: formData.maxSupply
           ? parseInt(formData.maxSupply)
           : undefined,
+        contractAddress,
+        metadataIpfsHash,
       });
 
       if (!response.success) {
-        throw new Error(response.message ?? response.error ?? 'Failed to create event');
+        throw new Error(
+          response.message ?? response.error ?? "Failed to create event",
+        );
       }
 
-      showSuccess(
-        `ChronoStamp event created successfully! 🎉`,
-        {
-          title: 'Event Created',
-          duration: 10000,
-          actions: [
-            {
-              label: 'Copy Event Code',
-              onClick: () => {
-                void navigator.clipboard.writeText(response.data?.eventCode ?? '');
-                showSuccess('Event code copied to clipboard!');
-              }
+      showSuccess(`ChronoStamp event created successfully! 🎉`, {
+        title: "Event Created",
+        duration: 10000,
+        actions: [
+          {
+            label: "Copy Event Code",
+            onClick: () => {
+              void navigator.clipboard.writeText(
+                response.data?.eventCode ?? "",
+              );
+              showSuccess("Event code copied to clipboard!");
             },
-            {
-              label: 'View Event',
-              onClick: () => {
-                window.location.href = `/event/${response.data?.id}`;
-              },
-              variant: 'outline'
-            }
-          ]
-        }
-      );
+          },
+          {
+            label: "View Event",
+            onClick: () => {
+              window.location.href = `/event/${response.data?.id}`;
+            },
+            variant: "outline",
+          },
+        ],
+      });
 
       // Reset form
-      setFormData({ name: "", description: "", eventCode: "", eventDate: "", maxSupply: "" });
+      setFormData({
+        name: "",
+        description: "",
+        eventCode: "",
+        eventDate: "",
+        maxSupply: "",
+      });
       setImageFile(null);
       setImagePreview("");
       onPreviewUpdate({ name: "", description: "", imageUrl: "" });
@@ -253,12 +377,15 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             id="eventCode"
             placeholder="e.g., DEVCONF2024SECRET"
             value={formData.eventCode}
-            onChange={(e) => handleInputChange("eventCode", e.target.value.toUpperCase())}
+            onChange={(e) =>
+              handleInputChange("eventCode", e.target.value.toUpperCase())
+            }
             disabled={ui.isLoading}
-            className="font-mono h-12 sm:h-auto text-sm sm:text-base"
+            className="h-12 font-mono text-sm sm:h-auto sm:text-base"
           />
           <p className="mt-1 text-xs text-gray-500">
-            This secret code will be revealed to attendees at the event to claim their ChronoStamp
+            This secret code will be revealed to attendees at the event to claim
+            their ChronoStamp
           </p>
         </div>
 
@@ -270,7 +397,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           >
             Event Artwork *
           </label>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <Button
               type="button"
               variant="outline"
@@ -281,7 +408,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               {imageFile ? "Change Image" : "Upload Image"}
             </Button>
             {imageFile && (
-              <span className="text-xs sm:text-sm text-gray-600 truncate">
+              <span className="truncate text-xs text-gray-600 sm:text-sm">
                 {imageFile.name}
               </span>
             )}
@@ -300,7 +427,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
                 alt="Event preview"
                 width={96}
                 height={96}
-                className="sm:w-32 sm:h-32 rounded-lg border object-cover"
+                className="rounded-lg border object-cover sm:h-32 sm:w-32"
               />
             </div>
           )}
@@ -356,22 +483,25 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               !formData.eventCode ||
               !imageFile
             }
-            className="w-full h-12 sm:h-14 text-sm sm:text-base"
+            className="h-12 w-full text-sm sm:h-14 sm:text-base"
             size="lg"
           >
             {ui.isLoading ? ui.loadingMessage : "Create ChronoStamp Event"}
           </Button>
 
           {!user.isConnected ? (
-            <p className="mt-3 text-center text-xs sm:text-sm text-gray-500">
+            <p className="mt-3 text-center text-xs text-gray-500 sm:text-sm">
               Connect your wallet to create events
             </p>
-          ) : !formData.name || !formData.description || !formData.eventCode || !imageFile ? (
-            <p className="mt-3 text-center text-xs sm:text-sm text-gray-400">
+          ) : !formData.name ||
+            !formData.description ||
+            !formData.eventCode ||
+            !imageFile ? (
+            <p className="mt-3 text-center text-xs text-gray-400 sm:text-sm">
               Fill in all required fields to continue
             </p>
           ) : (
-            <p className="mt-3 text-center text-xs sm:text-sm text-green-600">
+            <p className="mt-3 text-center text-xs text-green-600 sm:text-sm">
               ✓ Ready to create your event!
             </p>
           )}

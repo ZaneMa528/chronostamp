@@ -22,7 +22,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geist.variable}`}>
-      <body>
+      <body suppressHydrationWarning={true}>
         <Web3Provider>
           {children}
           <Footer />

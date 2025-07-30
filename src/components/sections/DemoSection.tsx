@@ -6,7 +6,7 @@ import { Button } from "~/components/ui/Button";
 
 const demoEvents = [
   {
-    id: "1",
+    id: "event_1753856497592_sl98g29",
     name: "DevConf 2025",
     code: "DEVCONF2025",
     description: "Developer Conference",
@@ -17,7 +17,7 @@ const demoEvents = [
     background: "#faf5ff",
   },
   {
-    id: "2",
+    id: "event_1753856720946_7b3qhex",
     name: "Birthday Party",
     code: "BDAY2025",
     description: "Private Celebration",
@@ -28,7 +28,7 @@ const demoEvents = [
     background: "#fdf2f8",
   },
   {
-    id: "3",
+    id: "event_1753856858884_ukqfnsy",
     name: "Graduation",
     code: "MILESTONE2025",
     description: "Life Achievement",

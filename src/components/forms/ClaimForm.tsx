@@ -108,50 +108,55 @@ export function ClaimForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="mx-auto w-full max-w-md">
       <CardHeader className="pb-4 sm:pb-6">
-        <CardTitle className="text-lg sm:text-xl md:text-2xl">Claim Your ChronoStamp</CardTitle>
+        <CardTitle className="text-lg sm:text-xl md:text-2xl">
+          Claim Your ChronoStamp
+        </CardTitle>
         <CardDescription className="text-sm sm:text-base">
           Enter your event code to claim your digital memory
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 sm:space-y-6">
         <div>
-          <label htmlFor="eventCode" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="eventCode"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
             Event Code
           </label>
           <Input
             id="eventCode"
-            placeholder="e.g., DEMO2024"
+            placeholder="e.g., DEVCONF2025"
             value={eventCode}
             onChange={(e) => setEventCode(e.target.value)}
             disabled={ui.isLoading}
-            className="text-center text-base sm:text-lg font-mono tracking-wider h-12 sm:h-14"
+            className="h-12 text-center font-mono text-base tracking-wider sm:h-14 sm:text-lg"
           />
-          <p className="text-xs text-gray-500 mt-1 text-center">
+          <p className="mt-1 text-center text-xs text-gray-500">
             Event codes are provided by organizers at events
           </p>
         </div>
-        
-        <Button 
+
+        <Button
           onClick={handleClaim}
           disabled={ui.isLoading || !user.isConnected || !eventCode.trim()}
-          className="w-full h-12 sm:h-14 text-sm sm:text-base"
+          className="h-12 w-full text-sm sm:h-14 sm:text-base"
           size="lg"
         >
-          {ui.isLoading ? ui.loadingMessage : 'Claim My ChronoStamp'}
+          {ui.isLoading ? ui.loadingMessage : "Claim My ChronoStamp"}
         </Button>
-        
+
         {!user.isConnected ? (
-          <p className="text-xs sm:text-sm text-gray-500 text-center">
+          <p className="text-center text-xs text-gray-500 sm:text-sm">
             👆 Connect your wallet above to claim stamps
           </p>
         ) : !eventCode.trim() ? (
-          <p className="text-xs sm:text-sm text-gray-400 text-center">
+          <p className="text-center text-xs text-gray-400 sm:text-sm">
             Enter an event code to continue
           </p>
         ) : (
-          <p className="text-xs sm:text-sm text-green-600 text-center">
+          <p className="text-center text-xs text-green-600 sm:text-sm">
             ✓ Ready to claim your ChronoStamp!
           </p>
         )}

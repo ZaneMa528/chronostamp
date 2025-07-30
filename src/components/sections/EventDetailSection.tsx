@@ -75,7 +75,7 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
 
     setLoading(true);
 
-    const result = await executeClaim({
+    await executeClaim({
       eventCode: eventCode.toUpperCase(),
       userAddress: user.address,
       onStatusChange: (status) => setLoading(true, status),
@@ -115,7 +115,7 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
 
   if (isLoadingEvent) {
     return (
-      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
+      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>
           <p className="text-gray-600 mt-4 text-sm sm:text-base">Loading event details...</p>
@@ -126,7 +126,7 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
 
   if (error || !event) {
     return (
-      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
+      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -19,6 +19,23 @@ interface ClaimResponse {
   };
 }
 
+interface ClaimSignatureResponse {
+  contractAddress: string;
+  signature: string;
+  nonce: string;
+  userAddress: string;
+  eventCode: string;
+  eventName: string;
+  eventId: string;
+  eventData: {
+    name: string;
+    description: string;
+    imageUrl: string;
+    eventDate: string;
+    organizer: string;
+  };
+}
+
 export class ApiClient {
   private static async request<T>(
     endpoint: string,
@@ -122,15 +139,58 @@ export class ApiClient {
     });
   }
 
-  // Claim API
+  // Claim API - Get signature for Web3 claim
+  static async getClaimSignature(
+    eventCode: string,
+    userAddress: string,
+  ): Promise<ApiResponse<ClaimSignatureResponse>> {
+    return this.request<ClaimSignatureResponse>("/claim", {
+      method: "POST",
+      body: JSON.stringify({ eventCode, userAddress }),
+    });
+  }
+
+  // Record successful claim transaction
+  static async recordClaim(
+    eventId: string,
+    userAddress: string,
+    transactionHash: string,
+    tokenId: string,
+    blockNumber?: number,
+    gasUsed?: number,
+  ): Promise<ApiResponse<ClaimResponse>> {
+    return this.request<ClaimResponse>("/claim/record", {
+      method: "POST",
+      body: JSON.stringify({
+        eventId,
+        userAddress,
+        transactionHash,
+        tokenId,
+        blockNumber,
+        gasUsed,
+      }),
+    });
+  }
+
+  // Legacy method for backward compatibility (now calls Web3 flow)
   static async claimStamp(
     eventCode: string,
     userAddress: string,
   ): Promise<ApiResponse<ClaimResponse>> {
-    return this.request<ClaimResponse>("/claim", {
-      method: "POST",
-      body: JSON.stringify({ eventCode, userAddress }),
-    });
+    // This method is kept for compatibility but should be replaced with Web3 flow
+    // For now, it just gets the signature - frontend should handle the rest
+    const signatureResponse = await this.getClaimSignature(eventCode, userAddress);
+    
+    if (!signatureResponse.success) {
+      return {
+        success: false,
+        error: signatureResponse.error,
+        message: signatureResponse.message,
+      };
+    }
+    
+    // Return a response indicating Web3 interaction is needed
+    throw new Error('Web3 interaction required - use getClaimSignature() instead');
   }
 
   static async getUserStamps(

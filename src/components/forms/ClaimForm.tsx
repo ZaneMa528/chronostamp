@@ -26,7 +26,7 @@ export function ClaimForm() {
 
     setLoading(true);
 
-    const result = await executeClaim({
+    await executeClaim({
       eventCode: eventCode.trim(),
       userAddress: user.address,
       onStatusChange: (status) => setLoading(true, status),

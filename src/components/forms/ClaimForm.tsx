@@ -6,8 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { Input } from "~/components/ui/Input";
 import { useAppStore } from "~/stores/useAppStore";
 import { useNotificationStore } from "~/stores/useNotificationStore";
-import { ApiClient } from "~/lib/api";
-import { callClaimContract, checkWalletConnection } from "~/lib/web3-utils";
+import { executeClaim, getTransactionUrl } from "~/lib/claim-utils";
 
 export function ClaimForm() {
   const [eventCode, setEventCode] = useState('');
@@ -25,86 +24,40 @@ export function ClaimForm() {
       return;
     }
 
-    try {
-      // Step 1: Get signature from server
-      setLoading(true, 'Preparing claim signature...');
-      
-      const signatureResponse = await ApiClient.getClaimSignature(eventCode, user.address);
-      
-      if (!signatureResponse.success || !signatureResponse.data) {
-        throw new Error(signatureResponse.message ?? signatureResponse.error ?? 'Failed to get claim signature');
-      }
+    setLoading(true);
 
-      // Step 2: Verify wallet connection and address
-      setLoading(true, 'Verifying wallet connection...');
-      const walletStatus = await checkWalletConnection();
-      
-      if (!walletStatus.isConnected || walletStatus.address?.toLowerCase() !== user.address.toLowerCase()) {
-        throw new Error('Wallet connection lost or address mismatch');
-      }
-
-      // Step 3: Call smart contract
-      setLoading(true, 'Calling smart contract...');
-      
-      const txResult = await callClaimContract(signatureResponse.data);
-      
-      // Step 4: Record successful transaction
-      setLoading(true, 'Recording claim transaction...');
-      
-      const recordResponse = await ApiClient.recordClaim(
-        signatureResponse.data.eventId,
-        user.address,
-        txResult.hash,
-        txResult.tokenId,
-        txResult.blockNumber,
-        txResult.gasUsed
-      );
-      
-      if (!recordResponse.success || !recordResponse.data) {
-        // Transaction succeeded but recording failed - show warning
-        showWarning('Transaction succeeded but failed to record. Your NFT is minted on blockchain.');
-        console.error('Failed to record claim:', recordResponse.error);
-      } else {
+    const result = await executeClaim({
+      eventCode: eventCode.trim(),
+      userAddress: user.address,
+      onStatusChange: (status) => setLoading(true, status),
+      onSuccess: (data) => {
         // Add the claimed stamp to user's collection
-        addOwnedStamp(recordResponse.data.stamp);
-      }
-      
-      // Show success message
-      showSuccess(
-        `ChronoStamp claimed successfully! 🎉`,
-        {
-          title: 'Claim Successful',
-          duration: 8000,
-          actions: [{
-            label: 'View Transaction',
-            onClick: () => {
-              // Use block explorer for Arbitrum Sepolia
-              window.open(`https://sepolia.arbiscan.io/tx/${txResult.hash}`, '_blank');
-            }
-          }]
+        if (data.stamp) {
+          addOwnedStamp(data.stamp);
         }
-      );
-      
-      setEventCode('');
-      
-    } catch (error) {
-      const errorMessage = (error as Error).message;
-      
-      // Handle specific Web3 errors with user-friendly messages
-      if (errorMessage.includes('rejected') || errorMessage.includes('denied')) {
-        showError('Transaction was cancelled by user');
-      } else if (errorMessage.includes('insufficient funds')) {
-        showError('Insufficient funds for gas fees. Please add ETH to your wallet.');
-      } else if (errorMessage.includes('already been processed')) {
-        showError('You have already claimed this ChronoStamp');
-      } else if (errorMessage.includes('Contract not deployed')) {
-        showError('This event is not yet available for claiming');
-      } else {
-        showError('Failed to claim ChronoStamp: ' + errorMessage);
-      }
-    } finally {
-      setLoading(false);
-    }
+        
+        // Show success message
+        showSuccess(
+          `ChronoStamp claimed successfully! 🎉`,
+          {
+            title: 'Claim Successful',
+            duration: 8000,
+            actions: [{
+              label: 'View Transaction',
+              onClick: () => {
+                window.open(getTransactionUrl(data.hash), '_blank');
+              }
+            }]
+          }
+        );
+        
+        setEventCode('');
+      },
+      onError: (error) => showError(error),
+      onWarning: (warning) => showWarning(warning)
+    });
+
+    setLoading(false);
   };
 
   return (

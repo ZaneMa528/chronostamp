@@ -5,12 +5,13 @@
 
 import { ApiClient } from '~/lib/api';
 import { callClaimContract, checkWalletConnection } from '~/lib/web3-utils';
+import type { ChronoStamp } from '~/stores/useAppStore';
 
 export interface ClaimOptions {
   eventCode: string;
   userAddress: string;
   onStatusChange?: (status: string) => void;
-  onSuccess?: (data: { hash: string; tokenId: string; stamp: any }) => void;
+  onSuccess?: (data: { hash: string; tokenId: string; stamp: ChronoStamp }) => void;
   onError?: (error: string) => void;
   onWarning?: (warning: string) => void;
 }
@@ -19,7 +20,7 @@ export interface ClaimResult {
   success: boolean;
   hash?: string;
   tokenId?: string;
-  stamp?: any;
+  stamp?: ChronoStamp;
   error?: string;
 }
 

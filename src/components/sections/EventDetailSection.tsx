@@ -8,6 +8,7 @@ import { Input } from '~/components/ui/Input';
 import { useAppStore } from '~/stores/useAppStore';
 import { useNotificationStore } from '~/stores/useNotificationStore';
 import { ApiClient } from '~/lib/api';
+import { executeClaim, getTransactionUrl } from '~/lib/claim-utils';
 import type { Event } from '~/stores/useAppStore';
 
 interface EventDetailSectionProps {
@@ -72,41 +73,44 @@ export function EventDetailSection({ eventId }: EventDetailSectionProps) {
       return;
     }
 
-    try {
-      setLoading(true, 'Claiming your ChronoStamp...');
-      
-      const response = await ApiClient.claimStamp(eventCode.toUpperCase(), user.address);
-      
-      if (!response.success) {
-        throw new Error(response.message ?? response.error ?? 'Failed to claim ChronoStamp');
-      }
+    setLoading(true);
 
-      if (response.data) {
-        addOwnedStamp(response.data.stamp);
+    const result = await executeClaim({
+      eventCode: eventCode.toUpperCase(),
+      userAddress: user.address,
+      onStatusChange: (status) => setLoading(true, status),
+      onSuccess: (data) => {
+        // Add the claimed stamp to user's collection
+        if (data.stamp) {
+          addOwnedStamp(data.stamp);
+        }
+        
+        // Show success message
         showSuccess(
           `ChronoStamp claimed successfully! 🎉`,
           {
             title: 'Claim Successful',
             duration: 8000,
-            actions: [{
-              label: 'View Transaction',
-              onClick: () => {
-                if (response.data?.transaction?.hash) {
-                  window.open(`https://etherscan.io/tx/${response.data.transaction.hash}`, '_blank');
+            actions: [
+              {
+                label: 'View Transaction',
+                onClick: () => {
+                  window.open(getTransactionUrl(data.hash), '_blank');
                 }
               }
-            }]
+            ]
           }
         );
+        
         // Refresh event details to update stats and clear the input
         void loadEventDetails();
         setEventCode('');
-      }
-    } catch (error) {
-      showError('Failed to claim ChronoStamp: ' + (error as Error).message);
-    } finally {
-      setLoading(false);
-    }
+      },
+      onError: (error) => showError(error),
+      onWarning: (warning) => showWarning(warning)
+    });
+
+    setLoading(false);
   };
 
   if (isLoadingEvent) {

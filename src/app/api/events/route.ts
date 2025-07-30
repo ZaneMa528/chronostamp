@@ -8,6 +8,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const organizer = searchParams.get("organizer");
+    const eventCode = searchParams.get("eventCode");
 
     // Query events from database
     const query = db.query.events.findMany({
@@ -17,11 +18,18 @@ export async function GET(request: Request) {
     const dbEvents = await query;
 
     // Filter events by organizer if specified
-    const filteredEvents = organizer
+    let filteredEvents = organizer
       ? dbEvents.filter(
           (event) => event.organizer.toLowerCase() === organizer.toLowerCase(),
         )
       : dbEvents;
+
+    // Filter events by eventCode if specified (for availability check)
+    if (eventCode) {
+      filteredEvents = filteredEvents.filter(
+        (event) => event.eventCode.toLowerCase() === eventCode.toLowerCase(),
+      );
+    }
 
     // Convert database format to frontend format
     const formattedEvents: Event[] = filteredEvents.map((event) => ({

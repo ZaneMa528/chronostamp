@@ -44,7 +44,7 @@ export function ClaimForm() {
       }
 
       // Step 3: Call smart contract
-      setLoading(true, 'Calling smart contract - please confirm in your wallet...');
+      setLoading(true, 'Calling smart contract...');
       
       const txResult = await callClaimContract(signatureResponse.data);
       

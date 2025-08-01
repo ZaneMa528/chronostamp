@@ -554,7 +554,7 @@ export function EventCard({ event, size = 'md', onShare }: EventCardProps) {
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <span className="font-bold" style={{ color: colorTheme.textSecondary }}>Event ID:</span>
-                      <p className="font-mono" style={{ color: colorTheme.text }}>#{event.id.toString().padStart(4, '0')}</p>
+                      <p className="font-mono truncate" style={{ color: colorTheme.text }}>#{event.id.toString().padStart(4, '0')}</p>
                     </div>
                     <div>
                       <span className="font-bold" style={{ color: colorTheme.textSecondary }}>Organizer:</span>

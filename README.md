@@ -30,7 +30,7 @@ This production application combines a modern React frontend with secure serverl
 ### 🔄 Claim Flow
 
 1. **Signature Generation**: Server generates cryptographic proof for eligible claims
-2. **Wallet Verification**: Client-side wallet connection and address verification  
+2. **Wallet Verification**: Client-side wallet connection and address verification
 3. **Smart Contract Call**: Direct blockchain interaction for NFT minting
 4. **Transaction Recording**: Hybrid storage of on-chain transaction data
 
@@ -76,19 +76,40 @@ This production application combines a modern React frontend with secure serverl
    ```bash
    # Copy environment template
    cp .env.example .env
-   
-   # Edit .env with your configuration:
-   # - Turso database URLs and tokens
-   # - Pinata JWT for IPFS
-   # - Signer private keys
    ```
+
+   **Required Environment Variables:**
+
+   The `.env.example` file contains detailed setup instructions for all required services. Here's a quick overview:
+
+   **Database (Turso - Required):**
+   - `DATABASE_URL_DEV` & `DATABASE_AUTH_TOKEN_DEV` - For local development
+   - Setup: Install Turso CLI → Create account → Create database → Get tokens
+
+   **IPFS Storage (Pinata - Required):**
+   - `PINATA_JWT` - For NFT metadata and artwork storage
+   - Setup: Create Pinata account → Generate API key with IPFS permissions
+
+   **Cryptographic Signing (Required):**
+   - `SIGNER_PRIVATE_KEY_DEV` & `NEXT_PUBLIC_SIGNER_ADDRESS_DEV` - For development
+   - Setup: Generate private key → Derive public address → Test key pair
+
+   **Smart Contracts (Required):**
+   - `NEXT_PUBLIC_FACTORY_CONTRACT_ADDRESS` - Deployed factory contract address
+
+   **Optional:**
+   - `RPC_URL` - Custom RPC endpoint (uses default if not provided)
+
+   **Security Note:** Never commit your `.env` file to version control. The `.env.example` file contains detailed setup instructions for each service.
+
+   **📖 Detailed Setup Guide:** For comprehensive environment variable setup instructions, see [docs/ENVIRONMENT_SETUP.md](./docs/ENVIRONMENT_SETUP.md).
 
 4. **Database setup**
 
    ```bash
    # Push schema to database
    pnpm db:push
-   
+
    # Insert demo data
    pnpm db:seed
    ```
@@ -131,6 +152,7 @@ src/
 ## ⚡ Development Commands
 
 ### Core Development
+
 ```bash
 pnpm dev              # Start development server with hot reload
 pnpm build            # Build production application
@@ -139,6 +161,7 @@ pnpm preview          # Build and start (test production locally)
 ```
 
 ### Code Quality & Validation
+
 ```bash
 pnpm lint             # Run ESLint linting
 pnpm lint:fix         # Run ESLint with auto-fix
@@ -149,6 +172,7 @@ pnpm format:write     # Apply Prettier formatting
 ```
 
 ### Database Management
+
 ```bash
 # Schema management
 pnpm db:generate      # Generate Drizzle migrations
@@ -176,13 +200,15 @@ This project is part of the ChronoStamp Protocol. See the main repository for li
 ## 🌐 Live Demo & Testing
 
 ### Demo Events Available
+
 The application includes pre-configured demo events for testing:
 
 - **DevConf 2025** (Code: `DEVCONF2025`) - Developer conference NFT
-- **Birthday Party** (Code: `BDAY2025`) - Personal celebration NFT  
+- **Birthday Party** (Code: `BDAY2025`) - Personal celebration NFT
 - **Graduation** (Code: `MILESTONE2025`) - Achievement milestone NFT
 
 ### Web3 Integration
+
 - **Network**: Arbitrum Sepolia Testnet
 - **Block Explorer**: [Arbitrum Sepolia Explorer](https://sepolia.arbiscan.io/)
 - **Testnet Faucet**: Get testnet ETH for gas fees
@@ -190,11 +216,12 @@ The application includes pre-configured demo events for testing:
 ## 🔧 Environment Configuration
 
 ### Required Environment Variables
+
 ```bash
 # Database (Turso)
 DATABASE_URL_DEV=             # Development database URL
 DATABASE_AUTH_TOKEN_DEV=      # Development database auth token
-DATABASE_URL_PROD=            # Production database URL  
+DATABASE_URL_PROD=            # Production database URL
 DATABASE_AUTH_TOKEN_PROD=     # Production database auth token
 
 # IPFS Storage (Pinata)
@@ -220,7 +247,7 @@ NEXT_PUBLIC_SIGNER_ADDRESS_PROD= # Production signer public address
 ✅ **Database Management**: Hybrid on-chain/off-chain data persistence  
 ✅ **Web3 Wallet Support**: Multi-wallet connection with RainbowKit  
 ✅ **Responsive Design**: Mobile-optimized user experience  
-✅ **Type Safety**: Full TypeScript coverage with strict validation  
+✅ **Type Safety**: Full TypeScript coverage with strict validation
 
 ---
 

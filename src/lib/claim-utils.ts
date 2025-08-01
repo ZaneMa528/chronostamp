@@ -35,7 +35,9 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
     // Step 1: Get signature from server
     onStatusChange?.('Preparing claim signature...');
     
-    const signatureResponse = await ApiClient.getClaimSignature(eventCode, userAddress);
+    // Get user's timezone for localized error messages
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const signatureResponse = await ApiClient.getClaimSignature(eventCode, userAddress, userTimeZone);
     
     if (!signatureResponse.success || !signatureResponse.data) {
       const errorMsg = signatureResponse.message ?? signatureResponse.error ?? 'Failed to get claim signature';
@@ -107,6 +109,10 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
       userFriendlyError = 'Insufficient funds for gas fees. Please add ETH to your wallet.';
     } else if (errorMessage.includes('already been processed')) {
       userFriendlyError = 'You have already claimed this ChronoStamp';
+    } else if (errorMessage.includes('Claiming not yet available')) {
+      userFriendlyError = errorMessage; // Use server message directly
+    } else if (errorMessage.includes('Claiming period ended')) {
+      userFriendlyError = errorMessage; // Use server message directly
     } else if (errorMessage.includes('Contract not deployed')) {
       userFriendlyError = 'This event is not yet available for claiming';
     } else {

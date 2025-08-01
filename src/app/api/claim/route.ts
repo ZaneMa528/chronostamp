@@ -6,10 +6,69 @@ import type { ChronoStamp } from '~/stores/useAppStore';
 import { signMessage, generateNonce, validateSignerConfig } from '~/lib/signer';
 import { env } from '~/env';
 
+// Helper function to format time for multiple timezones
+function formatTimeMessage(date: Date, userTimeZone?: string): string {
+  const aestTime = date.toLocaleString('en-US', {
+    timeZone: 'Australia/Sydney',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+
+  // If user timezone is provided and different from AEST, show both
+  if (userTimeZone && userTimeZone !== 'Australia/Sydney') {
+    try {
+      const localTime = date.toLocaleString('en-US', {
+        timeZone: userTimeZone,
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      // Get timezone abbreviation
+      const userTzName = getUserTimeZoneName(userTimeZone);
+      return `${localTime} ${userTzName} (${aestTime} AEST)`;
+    } catch {
+      // Fallback to AEST only if timezone is invalid
+      return `${aestTime} AEST`;
+    }
+  }
+  
+  return `${aestTime} AEST`;
+}
+
+// Helper to get common timezone abbreviations
+function getUserTimeZoneName(timeZone: string): string {
+  const tzMap: Record<string, string> = {
+    'America/New_York': 'EST',
+    'America/Chicago': 'CST', 
+    'America/Denver': 'MST',
+    'America/Los_Angeles': 'PST',
+    'Europe/London': 'GMT',
+    'Europe/Paris': 'CET',
+    'Asia/Tokyo': 'JST',
+    'Asia/Shanghai': 'CST',
+    'Australia/Sydney': 'AEST',
+    'Australia/Melbourne': 'AEST',
+  };
+  
+  return tzMap[timeZone] || 'Local';
+}
+
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { eventCode?: string; userAddress?: string };
-    const { eventCode, userAddress } = body;
+    const body = await request.json() as { 
+      eventCode?: string; 
+      userAddress?: string;
+      userTimeZone?: string; // Optional: user's timezone for localized error messages
+    };
+    const { eventCode, userAddress, userTimeZone } = body;
 
     // Validate required fields
     if (!eventCode || !userAddress) {
@@ -67,6 +126,35 @@ export async function POST(request: Request) {
           message: 'This event has reached its maximum supply'
         },
         { status: 410 }
+      );
+    }
+
+    // Check claim time restrictions (backward compatible)
+    const now = new Date();
+    
+    // If claimStartTime is set, check if claiming has started
+    if (event.claimStartTime && now < new Date(event.claimStartTime)) {
+      const startTime = new Date(event.claimStartTime);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Claiming not yet available',
+          message: `Claiming opens on ${formatTimeMessage(startTime, userTimeZone)}`
+        },
+        { status: 423 } // 423 Locked - resource temporarily unavailable
+      );
+    }
+
+    // If claimEndTime is set, check if claiming has ended
+    if (event.claimEndTime && now > new Date(event.claimEndTime)) {
+      const endTime = new Date(event.claimEndTime);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Claiming period ended',
+          message: `Claiming closed on ${formatTimeMessage(endTime, userTimeZone)}`
+        },
+        { status: 410 } // 410 Gone - resource no longer available
       );
     }
 

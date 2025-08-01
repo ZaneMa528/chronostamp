@@ -21,6 +21,8 @@ export const events = createTable(
     eventCode: d.text({ length: 50 }).notNull().unique(),
     organizer: d.text({ length: 42 }).notNull(),
     eventDate: d.integer({ mode: "timestamp" }).notNull(),
+    claimStartTime: d.integer({ mode: "timestamp" }), // Optional: when claiming opens (null = no restriction)
+    claimEndTime: d.integer({ mode: "timestamp" }),   // Optional: when claiming closes (null = no restriction)
     totalClaimed: d.integer().default(0).notNull(),
     maxSupply: d.integer().notNull(),
     createdAt: d

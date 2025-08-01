@@ -1,3 +1,18 @@
+# ChronoStamp Contract
+
+## Overview
+
+The `ChronoStamp` contract is an ERC721 NFT contract that implements a badge claiming system with cryptographic signature verification. It allows users to claim badges (NFTs) by providing a valid signature from a trusted signer.
+
+## Contract Details
+
+- **License**: UNLICENSED
+- **Solidity Version**: ^0.8.28
+- **Inheritance**: ERC721, Ownable, IChronoStamp
+
+## Complete Source Code
+
+```solidity
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
@@ -102,3 +117,51 @@ contract ChronoStamp is ERC721, Ownable, IChronoStamp {
         return Strings.toString(value);
     }
 }
+```
+
+## Key Features
+
+### State Variables
+
+- **`trustedSigner`**: Immutable address of the trusted signer who can authorize badge claims
+- **`baseTokenURI`**: Base URI for token metadata storage
+- **`nextTokenId`**: Counter for the next token ID to be minted
+- **`usedNonces`**: Mapping to prevent replay attacks by tracking used nonces
+
+### Events
+
+- **`BadgeClaimed`**: Emitted when a badge is successfully claimed
+
+### Functions
+
+#### Constructor
+
+Initializes the contract with collection details and trusted signer.
+
+#### `tokenURI(uint256 tokenId)`
+
+Returns the complete token URI for metadata retrieval.
+
+#### `claim(bytes memory signature, bytes32 nonce)`
+
+Main function for claiming badges with signature verification.
+
+#### `_toString(uint256 value)` (Internal)
+
+Utility function to convert uint256 to string.
+
+## Security Features
+
+1. **Replay Attack Prevention**: Uses nonces to ensure each signature can only be used once
+2. **Signature Verification**: Verifies the signature against the trusted signer using ECDSA recovery
+3. **Message Format**: Uses `keccak256(abi.encodePacked(msg.sender, nonce))` as the message hash
+4. **Ownership Control**: Inherits from Ownable for administrative functions
+
+## Usage Flow
+
+1. **Deployment**: Contract is deployed with trusted signer and base URI
+2. **Signature Generation**: Off-chain oracle generates signature for eligible users
+3. **Claim Process**: User calls `claim()` with signature and unique nonce
+4. **Verification**: Contract verifies signature and nonce
+5. **Minting**: NFT is minted to the user's address
+6. **Event Emission**: `BadgeClaimed` event is emitted

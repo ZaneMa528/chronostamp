@@ -1,3 +1,18 @@
+# ChronoStampFactory Contract
+
+## Overview
+
+The `ChronoStampFactory` contract is a factory contract that creates and manages individual `ChronoStamp` NFT contracts. It provides a centralized way to deploy new badge contracts and track all deployed instances.
+
+## Contract Details
+
+- **License**: MIT
+- **Solidity Version**: ^0.8.28
+- **Inheritance**: IChronoStampFactory, Ownable
+
+## Complete Source Code
+
+```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
@@ -86,3 +101,89 @@ contract ChronoStampFactory is IChronoStampFactory, Ownable {
         return list;
     }
 }
+```
+
+## Key Features
+
+### State Variables
+
+- **`deployedBadges`**: Array that stores the addresses of all deployed ChronoStamp contracts
+
+### Events
+
+- **`BadgeCreated`**: Emitted when a new ChronoStamp contract is deployed
+
+### Functions
+
+#### Constructor
+
+Initializes the factory contract with the deployer as the owner.
+
+#### `createNewBadge(string memory name, string memory symbol, string memory baseTokenURI, address trustedSigner)`
+
+Main function for creating new ChronoStamp contracts.
+
+**Parameters:**
+
+- `name`: The name of the NFT collection
+- `symbol`: The symbol of the NFT collection
+- `baseTokenURI`: IPFS/URL prefix for metadata
+- `trustedSigner`: Public key address of the Oracle
+
+**Returns:**
+
+- The address of the newly deployed ChronoStamp contract
+
+**Validation:**
+
+- Name cannot be empty
+- Symbol cannot be empty
+- Base token URI cannot be empty
+- Trusted signer address cannot be zero
+
+#### `getTotalBadges()`
+
+Returns the total number of deployed badge contracts.
+
+**Returns:**
+
+- Total count of deployed contracts
+
+#### `getBadgesPaginated(uint256 offset, uint256 limit)`
+
+Returns a paginated list of deployed badge contract addresses.
+
+**Parameters:**
+
+- `offset`: Starting index in the deployedBadges array
+- `limit`: Maximum number of addresses to return
+
+**Returns:**
+
+- Array of badge contract addresses
+
+## Usage Flow
+
+1. **Factory Deployment**: Deploy the ChronoStampFactory contract
+2. **Badge Creation**: Call `createNewBadge()` with collection details
+3. **Contract Deployment**: Factory deploys a new ChronoStamp contract
+4. **Address Storage**: New contract address is stored in `deployedBadges` array
+5. **Event Emission**: `BadgeCreated` event is emitted
+6. **Address Return**: Factory returns the new contract address
+
+## Benefits
+
+1. **Centralized Management**: All ChronoStamp contracts are tracked in one place
+2. **Easy Discovery**: Frontend can query all deployed contracts
+3. **Standardized Deployment**: Ensures consistent contract creation
+4. **Event Tracking**: Provides events for frontend integration
+5. **Pagination Support**: Efficient querying of large numbers of contracts
+
+## Integration with Frontend
+
+The factory contract enables the frontend to:
+
+- Discover all available badge collections
+- Deploy new badge collections
+- Track deployment events
+- Query contract addresses efficiently

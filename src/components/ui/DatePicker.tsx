@@ -92,10 +92,16 @@ export function DatePicker({ value, onChange, disabled, placeholder }: DatePicke
   const handleDateSelect = (date: Date) => {
     const [hours, minutes] = timeValue.split(':');
     const newDate = new Date(date);
-    newDate.setHours(parseInt(hours ?? '0'), parseInt(minutes ?? '0'));
+    newDate.setHours(parseInt(hours ?? '0'), parseInt(minutes ?? '0'), 0, 0);
     
     setSelectedDate(newDate);
-    onChange(newDate.toISOString().slice(0, 16));
+    // Convert to local datetime-local format (YYYY-MM-DDTHH:mm)
+    const year = newDate.getFullYear();
+    const month = String(newDate.getMonth() + 1).padStart(2, '0');
+    const day = String(newDate.getDate()).padStart(2, '0');
+    const hour = String(newDate.getHours()).padStart(2, '0');
+    const minute = String(newDate.getMinutes()).padStart(2, '0');
+    onChange(`${year}-${month}-${day}T${hour}:${minute}`);
   };
 
   const handleTimeChange = (newTime: string) => {
@@ -103,9 +109,15 @@ export function DatePicker({ value, onChange, disabled, placeholder }: DatePicke
     if (selectedDate) {
       const [hours, minutes] = newTime.split(':');
       const newDate = new Date(selectedDate);
-      newDate.setHours(parseInt(hours ?? '0'), parseInt(minutes ?? '0'));
+      newDate.setHours(parseInt(hours ?? '0'), parseInt(minutes ?? '0'), 0, 0);
       setSelectedDate(newDate);
-      onChange(newDate.toISOString().slice(0, 16));
+      // Convert to local datetime-local format (YYYY-MM-DDTHH:mm)
+      const year = newDate.getFullYear();
+      const month = String(newDate.getMonth() + 1).padStart(2, '0');
+      const day = String(newDate.getDate()).padStart(2, '0');
+      const hour = String(newDate.getHours()).padStart(2, '0');
+      const minute = String(newDate.getMinutes()).padStart(2, '0');
+      onChange(`${year}-${month}-${day}T${hour}:${minute}`);
     }
   };
 
@@ -259,8 +271,14 @@ export function DatePicker({ value, onChange, disabled, placeholder }: DatePicke
                 if (selectedDate) {
                   const [hours, minutes] = timeValue.split(':');
                   const finalDate = new Date(selectedDate);
-                  finalDate.setHours(parseInt(hours ?? '0'), parseInt(minutes ?? '0'));
-                  onChange(finalDate.toISOString().slice(0, 16));
+                  finalDate.setHours(parseInt(hours ?? '0'), parseInt(minutes ?? '0'), 0, 0);
+                  // Convert to local datetime-local format (YYYY-MM-DDTHH:mm)
+                  const year = finalDate.getFullYear();
+                  const month = String(finalDate.getMonth() + 1).padStart(2, '0');
+                  const day = String(finalDate.getDate()).padStart(2, '0');
+                  const hour = String(finalDate.getHours()).padStart(2, '0');
+                  const minute = String(finalDate.getMinutes()).padStart(2, '0');
+                  onChange(`${year}-${month}-${day}T${hour}:${minute}`);
                 }
                 setIsOpen(false);
               }}

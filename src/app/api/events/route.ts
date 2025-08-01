@@ -76,6 +76,8 @@ export async function POST(request: Request) {
       maxSupply?: number;
       metadataIpfsHash?: string;
       contractAddress?: string;
+      claimStartTime?: string;
+      claimEndTime?: string;
     };
     const {
       name,
@@ -87,6 +89,8 @@ export async function POST(request: Request) {
       maxSupply,
       metadataIpfsHash,
       contractAddress,
+      claimStartTime,
+      claimEndTime,
     } = body;
 
     // Validate required fields
@@ -140,6 +144,8 @@ export async function POST(request: Request) {
       eventCode: eventCode.toUpperCase(),
       organizer,
       eventDate: new Date(eventDate ?? Date.now() + 30 * 24 * 60 * 60 * 1000), // Default to 30 days from now
+      claimStartTime: claimStartTime ? new Date(claimStartTime) : null, // Optional: null = no restriction
+      claimEndTime: claimEndTime ? new Date(claimEndTime) : null,       // Optional: null = no restriction
       totalClaimed: 0,
       maxSupply: maxSupply ?? 1000, // Default max supply
     };

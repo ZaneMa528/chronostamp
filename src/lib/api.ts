@@ -134,6 +134,8 @@ export class ApiClient {
     maxSupply?: number;
     contractAddress: string;
     metadataIpfsHash: string;
+    claimStartTime?: Date;
+    claimEndTime?: Date;
   }): Promise<ApiResponse<Event>> {
     return this.request<Event>("/events", {
       method: "POST",
@@ -145,10 +147,11 @@ export class ApiClient {
   static async getClaimSignature(
     eventCode: string,
     userAddress: string,
+    userTimeZone?: string,
   ): Promise<ApiResponse<ClaimSignatureResponse>> {
     return this.request<ClaimSignatureResponse>("/claim", {
       method: "POST",
-      body: JSON.stringify({ eventCode, userAddress }),
+      body: JSON.stringify({ eventCode, userAddress, userTimeZone }),
     });
   }
 
@@ -184,6 +187,7 @@ export class ApiClient {
     const signatureResponse = await this.getClaimSignature(
       eventCode,
       userAddress,
+      // No timezone here as this is the legacy claimStamp method
     );
 
     if (!signatureResponse.success) {

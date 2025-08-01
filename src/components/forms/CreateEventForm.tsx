@@ -50,7 +50,10 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
     eventCode: "",
     eventDate: "",
     maxSupply: "",
+    claimStartTime: "",
+    claimEndTime: "",
   });
+  const [useClaimPeriod, setUseClaimPeriod] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [eventCodeStatus, setEventCodeStatus] =
@@ -118,6 +121,31 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
   const handleInputChange = (field: string, value: string) => {
     const newFormData = { ...formData, [field]: value };
+    
+    // Auto-set claim period defaults when event date changes
+    if (field === "eventDate" && value && useClaimPeriod) {
+      const eventDate = new Date(value);
+      if (!newFormData.claimStartTime) {
+        // Format as local datetime-local (YYYY-MM-DDTHH:mm)
+        const year = eventDate.getFullYear();
+        const month = String(eventDate.getMonth() + 1).padStart(2, '0');
+        const day = String(eventDate.getDate()).padStart(2, '0');
+        const hour = String(eventDate.getHours()).padStart(2, '0');
+        const minute = String(eventDate.getMinutes()).padStart(2, '0');
+        newFormData.claimStartTime = `${year}-${month}-${day}T${hour}:${minute}`;
+      }
+      if (!newFormData.claimEndTime) {
+        const endTime = new Date(eventDate.getTime() + 24 * 60 * 60 * 1000); // +24 hours
+        // Format as local datetime-local (YYYY-MM-DDTHH:mm)
+        const year = endTime.getFullYear();
+        const month = String(endTime.getMonth() + 1).padStart(2, '0');
+        const day = String(endTime.getDate()).padStart(2, '0');
+        const hour = String(endTime.getHours()).padStart(2, '0');
+        const minute = String(endTime.getMinutes()).padStart(2, '0');
+        newFormData.claimEndTime = `${year}-${month}-${day}T${hour}:${minute}`;
+      }
+    }
+    
     setFormData(newFormData);
 
     // Update preview
@@ -331,6 +359,13 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           : undefined,
         contractAddress,
         metadataIpfsHash,
+        // Optional claim period (backward compatible)
+        claimStartTime: formData.claimStartTime 
+          ? new Date(formData.claimStartTime) 
+          : undefined,
+        claimEndTime: formData.claimEndTime 
+          ? new Date(formData.claimEndTime) 
+          : undefined,
       });
 
       if (!response.success) {
@@ -369,7 +404,10 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
         eventCode: "",
         eventDate: "",
         maxSupply: "",
+        claimStartTime: "",
+        claimEndTime: "",
       });
+      setUseClaimPeriod(false);
       setImageFile(null);
       setImagePreview("");
       onPreviewUpdate({ name: "", description: "", imageUrl: "" });
@@ -593,6 +631,102 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           />
           <p className="mt-1 text-xs text-gray-500">
             When will your event take place?
+          </p>
+        </div>
+
+        {/* Claim Period */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-sm font-medium text-gray-700">
+              Claim Period (Optional)
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                const newUseClaimPeriod = !useClaimPeriod;
+                setUseClaimPeriod(newUseClaimPeriod);
+                
+                // Auto-set defaults when enabling claim period
+                if (newUseClaimPeriod && formData.eventDate) {
+                  const eventDate = new Date(formData.eventDate);
+                  const endTime = new Date(eventDate.getTime() + 24 * 60 * 60 * 1000);
+                  
+                  // Format start time as local datetime-local
+                  const formatLocalDateTime = (date: Date) => {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hour = String(date.getHours()).padStart(2, '0');
+                    const minute = String(date.getMinutes()).padStart(2, '0');
+                    return `${year}-${month}-${day}T${hour}:${minute}`;
+                  };
+                  
+                  setFormData(prev => ({
+                    ...prev,
+                    claimStartTime: prev.claimStartTime || formatLocalDateTime(eventDate),
+                    claimEndTime: prev.claimEndTime || formatLocalDateTime(endTime),
+                  }));
+                } else if (!newUseClaimPeriod) {
+                  // Clear claim times when disabling
+                  setFormData(prev => ({
+                    ...prev,
+                    claimStartTime: "",
+                    claimEndTime: "",
+                  }));
+                }
+              }}
+              disabled={ui.isLoading}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                useClaimPeriod ? 'bg-purple-600' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  useClaimPeriod ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          
+          {useClaimPeriod && (
+            <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Claim Start Time
+                </label>
+                <DatePicker
+                  value={formData.claimStartTime}
+                  onChange={(value) => handleInputChange("claimStartTime", value)}
+                  disabled={ui.isLoading}
+                  placeholder="When can users start claiming?"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Users can start claiming badges from this time (your local time)
+                </p>
+              </div>
+              
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Claim End Time
+                </label>
+                <DatePicker
+                  value={formData.claimEndTime}
+                  onChange={(value) => handleInputChange("claimEndTime", value)}
+                  disabled={ui.isLoading}
+                  placeholder="When should claiming end?"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Claiming will be disabled after this time (your local time)
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <p className="mt-2 text-xs text-gray-500">
+            {useClaimPeriod 
+              ? `Set specific times when attendees can claim their badges. Times are in your local timezone (${Intl.DateTimeFormat().resolvedOptions().timeZone}).`
+              : "Leave disabled for unlimited claiming"
+            }
           </p>
         </div>
 

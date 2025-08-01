@@ -58,7 +58,7 @@ function getUserTimeZoneName(timeZone: string): string {
     'Australia/Melbourne': 'AEST',
   };
   
-  return tzMap[timeZone] || 'Local';
+  return tzMap[timeZone] ?? 'Local';
 }
 
 export async function POST(request: Request) {

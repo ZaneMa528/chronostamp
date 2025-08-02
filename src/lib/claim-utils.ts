@@ -5,6 +5,7 @@
 
 import { ApiClient } from '~/lib/api';
 import { callClaimContract, checkWalletConnection } from '~/lib/web3-utils';
+import { getCurrentLocation } from '~/lib/location-utils';
 import type { ChronoStamp } from '~/stores/useAppStore';
 
 export interface ClaimOptions {
@@ -32,12 +33,30 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
   const { eventCode, userAddress, onStatusChange, onSuccess, onError, onWarning } = options;
 
   try {
-    // Step 1: Get signature from server
+    // Step 1: Get user location (optional - may fail if not needed or permission denied)
+    onStatusChange?.('Checking location requirements...');
+    
+    let userLocation: { latitude: number, longitude: number } | null = null;
+    try {
+      const location = await getCurrentLocation({ timeout: 5000 });
+      userLocation = { latitude: location.latitude, longitude: location.longitude };
+    } catch (error) {
+      // Location access failed - will be handled by API if location is required
+      console.log('Location access not available:', (error as Error).message);
+    }
+
+    // Step 2: Get signature from server
     onStatusChange?.('Preparing claim signature...');
     
     // Get user's timezone for localized error messages
     const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const signatureResponse = await ApiClient.getClaimSignature(eventCode, userAddress, userTimeZone);
+    const signatureResponse = await ApiClient.getClaimSignature(
+      eventCode, 
+      userAddress, 
+      userTimeZone,
+      userLocation?.latitude,
+      userLocation?.longitude
+    );
     
     if (!signatureResponse.success || !signatureResponse.data) {
       const errorMsg = signatureResponse.message ?? signatureResponse.error ?? 'Failed to get claim signature';
@@ -45,7 +64,7 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
       return { success: false, error: errorMsg };
     }
 
-    // Step 2: Verify wallet connection and address
+    // Step 3: Verify wallet connection and address
     onStatusChange?.('Verifying wallet connection...');
     const walletStatus = await checkWalletConnection();
     
@@ -55,12 +74,12 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
       return { success: false, error: errorMsg };
     }
 
-    // Step 3: Call smart contract
+    // Step 4: Call smart contract
     onStatusChange?.('Calling smart contract...');
     
     const txResult = await callClaimContract(signatureResponse.data);
     
-    // Step 4: Record successful transaction
+    // Step 5: Record successful transaction
     onStatusChange?.('Recording claim transaction...');
     
     const recordResponse = await ApiClient.recordClaim(
@@ -113,6 +132,10 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
       userFriendlyError = errorMessage; // Use server message directly
     } else if (errorMessage.includes('Claiming period ended')) {
       userFriendlyError = errorMessage; // Use server message directly
+    } else if (errorMessage.includes('Location required')) {
+      userFriendlyError = 'This event requires location verification. Please enable location access and try again.';
+    } else if (errorMessage.includes('Location restricted')) {
+      userFriendlyError = errorMessage; // Use server message with distance info
     } else if (errorMessage.includes('Contract not deployed')) {
       userFriendlyError = 'This event is not yet available for claiming';
     } else {

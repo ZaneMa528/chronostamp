@@ -15,6 +15,13 @@
       "when": 1754040163608,
       "tag": "0001_small_smasher",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1754096723096,
+      "tag": "0002_broken_king_bedlam",
+      "breakpoints": true
     }
   ]
 }

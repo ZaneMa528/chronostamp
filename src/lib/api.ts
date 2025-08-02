@@ -136,6 +136,10 @@ export class ApiClient {
     metadataIpfsHash: string;
     claimStartTime?: Date;
     claimEndTime?: Date;
+    locationLatitude?: number;
+    locationLongitude?: number;
+    locationRadius?: number;
+    locationName?: string;
   }): Promise<ApiResponse<Event>> {
     return this.request<Event>("/events", {
       method: "POST",
@@ -148,10 +152,18 @@ export class ApiClient {
     eventCode: string,
     userAddress: string,
     userTimeZone?: string,
+    userLatitude?: number,
+    userLongitude?: number,
   ): Promise<ApiResponse<ClaimSignatureResponse>> {
     return this.request<ClaimSignatureResponse>("/claim", {
       method: "POST",
-      body: JSON.stringify({ eventCode, userAddress, userTimeZone }),
+      body: JSON.stringify({ 
+        eventCode, 
+        userAddress, 
+        userTimeZone, 
+        userLatitude, 
+        userLongitude 
+      }),
     });
   }
 

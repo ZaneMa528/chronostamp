@@ -18,6 +18,7 @@ import {
 import { Input } from "~/components/ui/Input";
 import { Textarea } from "~/components/ui/Textarea";
 import { DatePicker } from "~/components/ui/DatePicker";
+import { AddressAutocomplete, type SelectedAddress } from "~/components/ui/AddressAutocomplete";
 import { useAppStore } from "~/stores/useAppStore";
 import { useNotificationStore } from "~/stores/useNotificationStore";
 import { ApiClient } from "~/lib/api";
@@ -54,6 +55,10 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
     claimEndTime: "",
   });
   const [useClaimPeriod, setUseClaimPeriod] = useState(false);
+  const [useLocationRestriction, setUseLocationRestriction] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<SelectedAddress | null>(null);
+  const [locationRadius, setLocationRadius] = useState("4000"); // Default 4km
+  const [locationError, setLocationError] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [eventCodeStatus, setEventCodeStatus] =
@@ -191,6 +196,13 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
     if (!user.isConnected) {
       showWarning("Please connect your wallet first");
+      return;
+    }
+
+    // Validate location restriction if enabled
+    if (useLocationRestriction && !selectedLocation) {
+      setLocationError("Please select a valid location from the search results");
+      showWarning("Please select a valid event location");
       return;
     }
 
@@ -365,6 +377,19 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
           : undefined,
         claimEndTime: formData.claimEndTime 
           ? new Date(formData.claimEndTime) 
+          : undefined,
+        // Optional location restriction (backward compatible)
+        locationLatitude: useLocationRestriction && selectedLocation 
+          ? selectedLocation.latitude 
+          : undefined,
+        locationLongitude: useLocationRestriction && selectedLocation 
+          ? selectedLocation.longitude 
+          : undefined,
+        locationRadius: useLocationRestriction && selectedLocation 
+          ? parseInt(locationRadius) 
+          : undefined,
+        locationName: useLocationRestriction && selectedLocation 
+          ? selectedLocation.name 
           : undefined,
       });
 
@@ -726,6 +751,104 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             {useClaimPeriod 
               ? `Set specific times when attendees can claim their badges. Times are in your local timezone (${Intl.DateTimeFormat().resolvedOptions().timeZone}).`
               : "Leave disabled for unlimited claiming"
+            }
+          </p>
+        </div>
+
+        {/* Location Restriction */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-sm font-medium text-gray-700">
+              Location Restriction (Optional)
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                const newUseLocationRestriction = !useLocationRestriction;
+                setUseLocationRestriction(newUseLocationRestriction);
+                
+                // Clear location data when disabling
+                if (!newUseLocationRestriction) {
+                  setSelectedLocation(null);
+                  setLocationRadius("4000");
+                  setLocationError("");
+                }
+              }}
+              disabled={ui.isLoading}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+                useLocationRestriction ? 'bg-purple-600' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  useLocationRestriction ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          
+          {useLocationRestriction && (
+            <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Event Location
+                </label>
+                <AddressAutocomplete
+                  onAddressSelect={(address) => {
+                    setSelectedLocation(address);
+                    setLocationError(""); // Clear error when valid address is selected
+                  }}
+                  selectedAddress={selectedLocation}
+                  onClear={() => {
+                    setSelectedLocation(null);
+                    setLocationError("");
+                  }}
+                  onValidationError={setLocationError}
+                  placeholder="Search for event location (e.g., Sydney Opera House)"
+                />
+                {locationError && (
+                  <p className="mt-1 text-sm text-red-600">{locationError}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Users must be at this location to claim their ChronoStamp
+                </p>
+              </div>
+              
+              <div>
+                <label
+                  htmlFor="locationRadius"
+                  className="mb-2 block text-sm font-medium text-gray-700"
+                >
+                  Allowed Range
+                </label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="locationRadius"
+                    type="number"
+                    min="100"
+                    max="50000"
+                    step="100"
+                    value={locationRadius}
+                    onChange={(e) => setLocationRadius(e.target.value)}
+                    disabled={ui.isLoading}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-gray-600">meters</span>
+                  <span className="text-xs text-gray-500">
+                    ({(parseInt(locationRadius) / 1000).toFixed(1)}km)
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  How far from the location can users be to claim? (Default: 4km for flexible claiming)
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <p className="mt-2 text-xs text-gray-500">
+            {useLocationRestriction 
+              ? "Users will need to be within the specified range of the event location to claim their badge"
+              : "Leave disabled to allow claiming from anywhere"
             }
           </p>
         </div>

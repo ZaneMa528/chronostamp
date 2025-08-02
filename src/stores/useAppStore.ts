@@ -25,6 +25,11 @@ export interface Event {
   eventDate: Date;
   totalClaimed: number;
   maxSupply?: number;
+  // Location restriction fields (optional, backward compatible)
+  locationLatitude?: number;
+  locationLongitude?: number;
+  locationRadius?: number;
+  locationName?: string;
 }
 
 interface AppState {

@@ -19,7 +19,6 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 // IChronoStamp.sol
@@ -66,6 +65,7 @@ contract ChronoStamp is ERC721, Ownable, IChronoStamp {
 
     /**
      * @dev return the token URI for a given token ID.
+     * @notice All tokens return the same URI (POAP design - all badges from same event share metadata)
      */
     function tokenURI(
         uint256 tokenId
@@ -73,7 +73,7 @@ contract ChronoStamp is ERC721, Ownable, IChronoStamp {
         // Ensure the token exists
         _requireOwned(tokenId);
         // Return the full token URI
-        return string(abi.encodePacked(baseTokenURI, "/", _toString(tokenId)));
+        return baseTokenURI;
     }
 
     // -------Claim Function-------
@@ -112,10 +112,7 @@ contract ChronoStamp is ERC721, Ownable, IChronoStamp {
         emit BadgeClaimed(msg.sender, tokenIdToMint);
     }
 
-    function _toString(uint256 value) internal pure returns (string memory) {
-        // Convert uint256 to string using OpenZeppelin's Strings library
-        return Strings.toString(value);
-    }
+
 }
 ```
 
@@ -140,15 +137,12 @@ Initializes the contract with collection details and trusted signer.
 
 #### `tokenURI(uint256 tokenId)`
 
-Returns the complete token URI for metadata retrieval.
+Returns the base token URI for metadata retrieval. **POAP Design**: All tokens from the same event share identical metadata, which is the correct behavior for Proof of Attendance Protocol badges.
 
 #### `claim(bytes memory signature, bytes32 nonce)`
 
 Main function for claiming badges with signature verification.
 
-#### `_toString(uint256 value)` (Internal)
-
-Utility function to convert uint256 to string.
 
 ## Security Features
 

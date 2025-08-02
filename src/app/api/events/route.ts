@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server";
-import { eq, desc } from "drizzle-orm";
-import { db } from "~/server/db";
-import { events } from "~/server/db/schema";
-import type { Event } from "~/stores/useAppStore";
+import { NextResponse } from 'next/server';
+import { eq, desc } from 'drizzle-orm';
+import { db } from '~/server/db';
+import { events } from '~/server/db/schema';
+import type { Event } from '~/stores/useAppStore';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const organizer = searchParams.get("organizer");
-    const eventCode = searchParams.get("eventCode");
+    const organizer = searchParams.get('organizer');
+    const eventCode = searchParams.get('eventCode');
 
     // Query events from database
     const query = db.query.events.findMany({
@@ -19,16 +19,12 @@ export async function GET(request: Request) {
 
     // Filter events by organizer if specified
     let filteredEvents = organizer
-      ? dbEvents.filter(
-          (event) => event.organizer.toLowerCase() === organizer.toLowerCase(),
-        )
+      ? dbEvents.filter((event) => event.organizer.toLowerCase() === organizer.toLowerCase())
       : dbEvents;
 
     // Filter events by eventCode if specified (for availability check)
     if (eventCode) {
-      filteredEvents = filteredEvents.filter(
-        (event) => event.eventCode.toLowerCase() === eventCode.toLowerCase(),
-      );
+      filteredEvents = filteredEvents.filter((event) => event.eventCode.toLowerCase() === eventCode.toLowerCase());
     }
 
     // Convert database format to frontend format
@@ -57,12 +53,12 @@ export async function GET(request: Request) {
       total: formattedEvents.length,
     });
   } catch (error) {
-    console.error("Database error:", error);
+    console.error('Database error:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to fetch events",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to fetch events',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
     );
@@ -107,20 +103,12 @@ export async function POST(request: Request) {
     } = body;
 
     // Validate required fields
-    if (
-      !name ||
-      !description ||
-      !eventCode ||
-      !organizer ||
-      !metadataIpfsHash ||
-      !contractAddress
-    ) {
+    if (!name || !description || !eventCode || !organizer || !metadataIpfsHash || !contractAddress) {
       return NextResponse.json(
         {
           success: false,
-          error: "Missing required fields",
-          message:
-            "Name, description, eventCode, organizer, metadataIpfsHash, and contractAddress are required",
+          error: 'Missing required fields',
+          message: 'Name, description, eventCode, organizer, metadataIpfsHash, and contractAddress are required',
         },
         { status: 400 },
       );
@@ -135,7 +123,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "Event code already exists",
+          error: 'Event code already exists',
           message: `Event with code ${eventCode} already exists`,
         },
         { status: 409 },
@@ -150,18 +138,16 @@ export async function POST(request: Request) {
       id: eventId,
       name,
       description,
-      imageUrl:
-        imageUrl ??
-        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&h=500&fit=crop",
+      imageUrl: imageUrl ?? 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&h=500&fit=crop',
       contractAddress, // Contract address from frontend
       eventCode: eventCode.toUpperCase(),
       organizer,
       eventDate: new Date(eventDate ?? Date.now() + 30 * 24 * 60 * 60 * 1000), // Default to 30 days from now
       claimStartTime: claimStartTime ? new Date(claimStartTime) : null, // Optional: null = no restriction
-      claimEndTime: claimEndTime ? new Date(claimEndTime) : null,       // Optional: null = no restriction
+      claimEndTime: claimEndTime ? new Date(claimEndTime) : null, // Optional: null = no restriction
       // Location fields (optional, backward compatible)
       locationLatitude: locationLatitude ?? null,
-      locationLongitude: locationLongitude ?? null,  
+      locationLongitude: locationLongitude ?? null,
       locationRadius: locationRadius ?? null,
       locationName: locationName ?? null,
       totalClaimed: 0,
@@ -176,7 +162,7 @@ export async function POST(request: Request) {
     });
 
     if (!createdEvent) {
-      throw new Error("Failed to retrieve created event");
+      throw new Error('Failed to retrieve created event');
     }
 
     // Convert to frontend format
@@ -211,16 +197,15 @@ export async function POST(request: Request) {
         }),
         ...(contractAddress && { contractAddress }),
       },
-      message:
-        "Event created successfully (contract address provided by frontend)",
+      message: 'Event created successfully (contract address provided by frontend)',
     });
   } catch (error) {
-    console.error("Database error:", error);
+    console.error('Database error:', error);
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to create event",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to create event',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
     );

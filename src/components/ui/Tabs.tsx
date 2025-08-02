@@ -21,9 +21,7 @@ export function Tabs({ defaultValue, children, className }: TabsProps) {
 
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab }}>
-      <div className={cn('w-full', className)}>
-        {children}
-      </div>
+      <div className={cn('w-full', className)}>{children}</div>
     </TabsContext.Provider>
   );
 }
@@ -35,10 +33,9 @@ interface TabsListProps {
 
 export function TabsList({ children, className }: TabsListProps) {
   return (
-    <div className={cn(
-      'inline-flex h-9 items-center justify-center rounded-lg bg-gray-100 p-1 text-gray-500',
-      className
-    )}>
+    <div
+      className={cn('inline-flex h-9 items-center justify-center rounded-lg bg-gray-100 p-1 text-gray-500', className)}
+    >
       {children}
     </div>
   );
@@ -64,11 +61,9 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
       type="button"
       onClick={() => setActiveTab(value)}
       className={cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-        isActive
-          ? 'bg-white text-gray-900 shadow'
-          : 'text-gray-600 hover:text-gray-900',
-        className
+        'inline-flex items-center justify-center rounded-md px-3 py-1 text-sm font-medium whitespace-nowrap ring-offset-white transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+        isActive ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900',
+        className,
       )}
     >
       {children}
@@ -96,7 +91,12 @@ export function TabsContent({ value, children, className }: TabsContentProps) {
   }
 
   return (
-    <div className={cn('mt-2 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2', className)}>
+    <div
+      className={cn(
+        'mt-2 ring-offset-white focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none',
+        className,
+      )}
+    >
       {children}
     </div>
   );

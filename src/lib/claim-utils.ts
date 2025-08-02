@@ -35,8 +35,8 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
   try {
     // Step 1: Get user location (optional - may fail if not needed or permission denied)
     onStatusChange?.('Checking location requirements...');
-    
-    let userLocation: { latitude: number, longitude: number } | null = null;
+
+    let userLocation: { latitude: number; longitude: number } | null = null;
     try {
       const location = await getCurrentLocation({ timeout: 5000 });
       userLocation = { latitude: location.latitude, longitude: location.longitude };
@@ -47,17 +47,17 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
 
     // Step 2: Get signature from server
     onStatusChange?.('Preparing claim signature...');
-    
+
     // Get user's timezone for localized error messages
     const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const signatureResponse = await ApiClient.getClaimSignature(
-      eventCode, 
-      userAddress, 
+      eventCode,
+      userAddress,
       userTimeZone,
       userLocation?.latitude,
-      userLocation?.longitude
+      userLocation?.longitude,
     );
-    
+
     if (!signatureResponse.success || !signatureResponse.data) {
       const errorMsg = signatureResponse.message ?? signatureResponse.error ?? 'Failed to get claim signature';
       onError?.(errorMsg);
@@ -67,7 +67,7 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
     // Step 3: Verify wallet connection and address
     onStatusChange?.('Verifying wallet connection...');
     const walletStatus = await checkWalletConnection();
-    
+
     if (!walletStatus.isConnected || walletStatus.address?.toLowerCase() !== userAddress.toLowerCase()) {
       const errorMsg = 'Wallet connection lost or address mismatch';
       onError?.(errorMsg);
@@ -76,33 +76,33 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
 
     // Step 4: Call smart contract
     onStatusChange?.('Calling smart contract...');
-    
+
     const txResult = await callClaimContract(signatureResponse.data);
-    
+
     // Step 5: Record successful transaction
     onStatusChange?.('Recording claim transaction...');
-    
+
     const recordResponse = await ApiClient.recordClaim(
       signatureResponse.data.eventId,
       userAddress,
       txResult.hash,
       txResult.tokenId,
       txResult.blockNumber,
-      txResult.gasUsed
+      txResult.gasUsed,
     );
-    
+
     if (!recordResponse.success || !recordResponse.data) {
       // Transaction succeeded but recording failed - show warning
       const warningMsg = 'Transaction succeeded but failed to record. Your NFT is minted on blockchain.';
       onWarning?.(warningMsg);
       console.error('Failed to record claim:', recordResponse.error);
-      
+
       // Still return success since blockchain transaction succeeded
       return {
         success: true,
         hash: txResult.hash,
         tokenId: txResult.tokenId,
-        error: 'Recording failed but NFT minted successfully'
+        error: 'Recording failed but NFT minted successfully',
       };
     }
 
@@ -111,16 +111,15 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
       success: true,
       hash: txResult.hash,
       tokenId: txResult.tokenId,
-      stamp: recordResponse.data.stamp
+      stamp: recordResponse.data.stamp,
     };
 
     onSuccess?.(result);
     return result;
-    
   } catch (error) {
     const errorMessage = (error as Error).message;
     let userFriendlyError: string;
-    
+
     // Handle specific Web3 errors with user-friendly messages
     if (errorMessage.includes('rejected') || errorMessage.includes('denied')) {
       userFriendlyError = 'Transaction was cancelled by user';
@@ -141,7 +140,7 @@ export async function executeClaim(options: ClaimOptions): Promise<ClaimResult> 
     } else {
       userFriendlyError = 'Failed to claim ChronoStamp: ' + errorMessage;
     }
-    
+
     onError?.(userFriendlyError);
     return { success: false, error: userFriendlyError };
   }

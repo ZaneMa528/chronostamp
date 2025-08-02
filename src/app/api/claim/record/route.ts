@@ -7,26 +7,26 @@ import { env } from '~/env';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { 
-      eventId?: string; 
+    const body = (await request.json()) as {
+      eventId?: string;
       userAddress?: string;
       transactionHash?: string;
       tokenId?: string;
       blockNumber?: number;
       gasUsed?: number;
     };
-    
+
     const { eventId, userAddress, transactionHash, tokenId, blockNumber, gasUsed } = body;
 
     // Validate required fields
     if (!eventId || !userAddress || !transactionHash || !tokenId) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Missing required fields',
-          message: 'eventId, userAddress, transactionHash, and tokenId are required'
+          message: 'eventId, userAddress, transactionHash, and tokenId are required',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -37,31 +37,28 @@ export async function POST(request: Request) {
 
     if (!event) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Event not found',
-          message: `No event found with id: ${eventId}`
+          message: `No event found with id: ${eventId}`,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Check if claim already exists (prevent double recording)
     const existingClaim = await db.query.claims.findFirst({
-      where: and(
-        eq(claims.userAddress, userAddress),
-        eq(claims.eventId, event.id)
-      ),
+      where: and(eq(claims.userAddress, userAddress), eq(claims.eventId, event.id)),
     });
-    
+
     if (existingClaim) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Already recorded',
-          message: 'This claim has already been recorded'
+          message: 'This claim has already been recorded',
         },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -70,44 +67,43 @@ export async function POST(request: Request) {
       try {
         const { ethers } = await import('ethers');
         const provider = new ethers.JsonRpcProvider(env.RPC_URL);
-        
+
         // Get transaction receipt to verify it exists and was successful
         const receipt = await provider.getTransactionReceipt(transactionHash);
-        
+
         if (!receipt) {
           return NextResponse.json(
-            { 
-              success: false, 
+            {
+              success: false,
               error: 'Transaction not found',
-              message: 'Transaction not found on blockchain'
+              message: 'Transaction not found on blockchain',
             },
-            { status: 400 }
+            { status: 400 },
           );
         }
-        
+
         if (receipt.status !== 1) {
           return NextResponse.json(
-            { 
-              success: false, 
+            {
+              success: false,
               error: 'Transaction failed',
-              message: 'Transaction failed on blockchain'
+              message: 'Transaction failed on blockchain',
             },
-            { status: 400 }
+            { status: 400 },
           );
         }
-        
+
         // Verify the transaction was to the correct contract
         if (receipt.to?.toLowerCase() !== event.contractAddress?.toLowerCase()) {
           return NextResponse.json(
-            { 
-              success: false, 
+            {
+              success: false,
               error: 'Wrong contract',
-              message: 'Transaction was not sent to the event contract'
+              message: 'Transaction was not sent to the event contract',
             },
-            { status: 400 }
+            { status: 400 },
           );
         }
-        
       } catch (verificationError) {
         console.error('Transaction verification failed:', verificationError);
         // Continue anyway - verification is optional
@@ -123,7 +119,8 @@ export async function POST(request: Request) {
     });
 
     // Update event's total claimed count
-    await db.update(events)
+    await db
+      .update(events)
       .set({ totalClaimed: event.totalClaimed + 1 })
       .where(eq(events.id, event.id));
 
@@ -148,20 +145,19 @@ export async function POST(request: Request) {
           hash: transactionHash,
           blockNumber: blockNumber ?? 0,
           gasUsed: gasUsed ?? 0,
-        }
+        },
       },
       message: 'ChronoStamp claim recorded successfully!',
     });
-
   } catch (error) {
     console.error('Claim recording error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to record claim',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

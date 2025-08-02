@@ -3,10 +3,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '~/server/db';
 import { events } from '~/server/db/schema';
 
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
 
@@ -14,15 +11,15 @@ export async function GET(
     const event = await db.query.events.findFirst({
       where: eq(events.id, id),
     });
-    
+
     if (!event) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Event not found',
-          message: `No event found with ID: ${id}`
+          message: `No event found with ID: ${id}`,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -50,23 +47,22 @@ export async function GET(
         tokenStandard: 'ERC-721',
         royalty: '5%',
         ipfsHash: `Qm${Math.random().toString(36).substring(2, 15)}`,
-      }
+      },
     };
 
     return NextResponse.json({
       success: true,
       data: eventDetails,
     });
-
   } catch (error) {
     console.error('Database error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to fetch event details',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

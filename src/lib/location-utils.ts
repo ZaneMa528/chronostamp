@@ -18,10 +18,7 @@ export interface LocationData extends LocationCoordinates {
  * @param coord2 Second coordinate
  * @returns Distance in meters
  */
-export function calculateDistance(
-  coord1: LocationCoordinates,
-  coord2: LocationCoordinates
-): number {
+export function calculateDistance(coord1: LocationCoordinates, coord2: LocationCoordinates): number {
   const R = 6371000; // Earth's radius in meters
   const lat1Rad = (coord1.latitude * Math.PI) / 180;
   const lat2Rad = (coord2.latitude * Math.PI) / 180;
@@ -30,10 +27,7 @@ export function calculateDistance(
 
   const a =
     Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
-    Math.cos(lat1Rad) *
-      Math.cos(lat2Rad) *
-      Math.sin(deltaLngRad / 2) *
-      Math.sin(deltaLngRad / 2);
+    Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(deltaLngRad / 2) * Math.sin(deltaLngRad / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c; // Distance in meters
@@ -44,9 +38,7 @@ export function calculateDistance(
  * @param options Geolocation options
  * @returns Promise with location data
  */
-export function getCurrentLocation(
-  options?: PositionOptions
-): Promise<LocationData> {
+export function getCurrentLocation(options?: PositionOptions): Promise<LocationData> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
       reject(new Error('Geolocation is not supported by this browser'));
@@ -83,7 +75,7 @@ export function getCurrentLocation(
         }
         reject(new Error(message));
       },
-      defaultOptions
+      defaultOptions,
     );
   });
 }
@@ -110,7 +102,7 @@ export function formatDistance(distanceInMeters: number): string {
 export function checkLocationRange(
   userLocation: LocationCoordinates,
   eventLocation: LocationCoordinates,
-  allowedRadius: number
+  allowedRadius: number,
 ): { isWithinRange: boolean; distance: number; distanceFormatted: string } {
   const distance = calculateDistance(userLocation, eventLocation);
   return {
@@ -127,14 +119,10 @@ export function checkLocationRange(
  * @param userDistance User's distance from event
  * @returns Formatted error message
  */
-export function formatLocationError(
-  eventLocationName: string,
-  allowedRadius: number,
-  userDistance: number
-): string {
+export function formatLocationError(eventLocationName: string, allowedRadius: number, userDistance: number): string {
   const allowedDistanceFormatted = formatDistance(allowedRadius);
   const userDistanceFormatted = formatDistance(userDistance);
-  
+
   return `You are ${userDistanceFormatted} away from ${eventLocationName}. Please be within ${allowedDistanceFormatted} to claim this ChronoStamp.`;
 }
 

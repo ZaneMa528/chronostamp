@@ -4,7 +4,7 @@ import { mockEvents } from '~/lib/mockData';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as {
+    const body = (await request.json()) as {
       userAddress?: string;
       eventCode?: string;
       contractAddress?: string;
@@ -15,64 +15,62 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!userAddress || !eventCode) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Missing required fields',
-          message: 'userAddress and eventCode are required'
+          message: 'userAddress and eventCode are required',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Validate user address format
     if (!/^0x[a-fA-F0-9]{40}$/.test(userAddress)) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Invalid address format',
-          message: 'userAddress must be a valid Ethereum address'
+          message: 'userAddress must be a valid Ethereum address',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Validate signer configuration
     if (!validateSignerConfig()) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Server configuration error',
-          message: 'Signature service is not properly configured'
+          message: 'Signature service is not properly configured',
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // Validate if the event code exists
-    const event = mockEvents.find(e => 
-      e.eventCode.toLowerCase() === eventCode.toLowerCase()
-    );
+    const event = mockEvents.find((e) => e.eventCode.toLowerCase() === eventCode.toLowerCase());
 
     if (!event) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Invalid event code',
-          message: `Event with code "${eventCode}" not found`
+          message: `Event with code "${eventCode}" not found`,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Optional: Validate contract address match (if provided)
     if (contractAddress && contractAddress !== event.contractAddress) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Contract address mismatch',
-          message: 'Provided contract address does not match event contract'
+          message: 'Provided contract address does not match event contract',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -98,16 +96,15 @@ export async function POST(request: NextRequest) {
       },
       message: 'Signature generated successfully',
     });
-
   } catch (error) {
     console.error('Signature generation error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Signature generation failed',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -131,12 +128,12 @@ export async function GET() {
     });
   } catch (error) {
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Health check failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

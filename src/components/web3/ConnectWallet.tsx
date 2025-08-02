@@ -17,21 +17,10 @@ export function ConnectWallet() {
 
   return (
     <ConnectButton.Custom>
-      {({
-        account,
-        chain,
-        openAccountModal,
-        openChainModal,
-        openConnectModal,
-        authenticationStatus,
-        mounted,
-      }) => {
+      {({ account, chain, openAccountModal, openChainModal, openConnectModal, authenticationStatus, mounted }) => {
         const ready = mounted && authenticationStatus !== 'loading';
         const connected =
-          ready &&
-          account &&
-          chain &&
-          (!authenticationStatus || authenticationStatus === 'authenticated');
+          ready && account && chain && (!authenticationStatus || authenticationStatus === 'authenticated');
 
         return (
           <div
@@ -47,11 +36,7 @@ export function ConnectWallet() {
             {(() => {
               if (!connected) {
                 return (
-                  <Button
-                    onClick={openConnectModal}
-                    variant="default"
-                    size="default"
-                  >
+                  <Button onClick={openConnectModal} variant="default" size="default">
                     Connect Wallet
                   </Button>
                 );
@@ -59,11 +44,7 @@ export function ConnectWallet() {
 
               if (chain.unsupported) {
                 return (
-                  <Button
-                    onClick={openChainModal}
-                    variant="destructive"
-                    size="default"
-                  >
+                  <Button onClick={openChainModal} variant="destructive" size="default">
                     Wrong network
                   </Button>
                 );
@@ -75,7 +56,7 @@ export function ConnectWallet() {
                     onClick={openChainModal}
                     variant="outline"
                     size="sm"
-                    className="font-mono text-xs sm:text-sm hidden sm:inline-flex"
+                    className="hidden font-mono text-xs sm:inline-flex sm:text-sm"
                   >
                     {chain.hasIcon && (
                       <div
@@ -89,12 +70,7 @@ export function ConnectWallet() {
                         }}
                       >
                         {chain.iconUrl && (
-                          <Image
-                            alt={chain.name ?? 'Chain icon'}
-                            src={chain.iconUrl}
-                            width={12}
-                            height={12}
-                          />
+                          <Image alt={chain.name ?? 'Chain icon'} src={chain.iconUrl} width={12} height={12} />
                         )}
                       </div>
                     )}
@@ -107,12 +83,8 @@ export function ConnectWallet() {
                     size="sm"
                     className="font-mono text-xs sm:text-sm"
                   >
-                    <span className="block sm:hidden">
-                      {account.displayName?.slice(0, 6)}...
-                    </span>
-                    <span className="hidden sm:block">
-                      {account.displayName}
-                    </span>
+                    <span className="block sm:hidden">{account.displayName?.slice(0, 6)}...</span>
+                    <span className="hidden sm:block">{account.displayName}</span>
                   </Button>
                 </div>
               );

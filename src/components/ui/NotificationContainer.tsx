@@ -17,27 +17,21 @@ export function NotificationContainer() {
   if (!mounted) return null;
 
   const container = (
-    <div className="fixed inset-0 pointer-events-none z-50">
+    <div className="pointer-events-none fixed inset-0 z-50">
       {/* Mobile positioning - bottom of screen */}
-      <div className="sm:hidden absolute bottom-4 left-4 right-4 flex flex-col gap-3">
+      <div className="absolute right-4 bottom-4 left-4 flex flex-col gap-3 sm:hidden">
         {notifications.map((notification) => (
           <div key={notification.id} className="pointer-events-auto">
-            <Notification
-              {...notification}
-              onClose={() => removeNotification(notification.id)}
-            />
+            <Notification {...notification} onClose={() => removeNotification(notification.id)} />
           </div>
         ))}
       </div>
 
       {/* Desktop positioning - top right */}
-      <div className="hidden sm:flex absolute top-4 right-4 flex-col gap-3 max-w-md">
+      <div className="absolute top-4 right-4 hidden max-w-md flex-col gap-3 sm:flex">
         {notifications.map((notification) => (
           <div key={notification.id} className="pointer-events-auto">
-            <Notification
-              {...notification}
-              onClose={() => removeNotification(notification.id)}
-            />
+            <Notification {...notification} onClose={() => removeNotification(notification.id)} />
           </div>
         ))}
       </div>

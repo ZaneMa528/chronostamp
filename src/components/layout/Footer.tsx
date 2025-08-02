@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Logo } from "~/components/ui/Logo";
+import { Logo } from '~/components/ui/Logo';
 
 export function Footer() {
   return (
@@ -11,9 +11,7 @@ export function Footer() {
           <div>
             <div className="mb-2 flex items-center gap-3">
               <Logo size={32} className="transform opacity-90" />
-              <h3 className="font-serif text-xl font-bold text-gray-900">
-                ChronoStamp
-              </h3>
+              <h3 className="font-serif text-xl font-bold text-gray-900">ChronoStamp</h3>
             </div>
 
             <p className="max-w-md text-sm leading-relaxed text-gray-600">
@@ -23,9 +21,7 @@ export function Footer() {
 
           {/* Right Side - Copyright */}
           <div className="text-xs text-gray-500 sm:text-right">
-            <div className="mb-1">
-              © {new Date().getFullYear()} ChronoStamp Protocol
-            </div>
+            <div className="mb-1">© {new Date().getFullYear()} ChronoStamp Protocol</div>
             <div>All rights reserved.</div>
           </div>
         </div>
@@ -37,24 +33,12 @@ export function Footer() {
         }
 
         .stamp-perforations::before {
-          content: "";
+          content: '';
           position: absolute;
           inset: -1px;
           background:
-            radial-gradient(
-              circle at 3px 3px,
-              transparent 1px,
-              currentColor 1px,
-              currentColor 2px,
-              transparent 2px
-            ),
-            radial-gradient(
-              circle at 3px 3px,
-              transparent 1px,
-              currentColor 1px,
-              currentColor 2px,
-              transparent 2px
-            );
+            radial-gradient(circle at 3px 3px, transparent 1px, currentColor 1px, currentColor 2px, transparent 2px),
+            radial-gradient(circle at 3px 3px, transparent 1px, currentColor 1px, currentColor 2px, transparent 2px);
           background-size: 6px 6px;
           background-position:
             0 0,

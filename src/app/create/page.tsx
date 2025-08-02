@@ -1,5 +1,5 @@
-import { Header } from "~/components/layout/Header";
-import { CreateEventSection } from "~/components/sections/CreateEventSection";
+import { Header } from '~/components/layout/Header';
+import { CreateEventSection } from '~/components/sections/CreateEventSection';
 
 export default function CreatePage() {
   return (

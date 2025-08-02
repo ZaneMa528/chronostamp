@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect, type ChangeEvent } from "react";
-import { Input } from "./Input";
-import { Button } from "./Button";
-import { Card, CardContent } from "./Card";
+import { useState, useRef, useEffect, type ChangeEvent } from 'react';
+import { Input } from './Input';
+import { Button } from './Button';
+import { Card, CardContent } from './Card';
 
 export interface AddressOption {
   place_id: string;
@@ -32,17 +32,17 @@ interface AddressAutocompleteProps {
 
 export function AddressAutocomplete({
   onAddressSelect,
-  placeholder = "Search for event location...",
-  className = "",
+  placeholder = 'Search for event location...',
+  className = '',
   selectedAddress,
   onClear,
   onValidationError,
 }: AddressAutocompleteProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<AddressOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  
+
   const searchRef = useRef<HTMLInputElement>(null);
   const suggestionContainerRef = useRef<HTMLDivElement>(null);
   const suggestionRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -60,13 +60,13 @@ export function AddressAutocomplete({
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(
-          searchQuery
+          searchQuery,
         )}`,
         {
           headers: {
             'User-Agent': 'ChronoStamp/1.0',
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -74,7 +74,7 @@ export function AddressAutocomplete({
       }
 
       const data = (await response.json()) as AddressOption[];
-      
+
       // Filter and sort results by importance
       const filteredData = data
         .filter((item) => item.lat && item.lon)
@@ -130,7 +130,7 @@ export function AddressAutocomplete({
 
   // Handle clear selection
   const handleClear = () => {
-    setQuery("");
+    setQuery('');
     setSuggestions([]);
     setShowSuggestions(false);
     if (onClear) {
@@ -161,7 +161,8 @@ export function AddressAutocomplete({
   // Validate user input when they try to submit without selecting from suggestions
   const validateUserInput = () => {
     if (!selectedAddress && query.length > 0) {
-      const errorMessage = "Please select a location from the suggestions above. Manual text input is not supported for accuracy.";
+      const errorMessage =
+        'Please select a location from the suggestions above. Manual text input is not supported for accuracy.';
       onValidationError?.(errorMessage);
     }
   };
@@ -174,18 +175,14 @@ export function AddressAutocomplete({
       // Only validate if we're not focusing on a suggestion button
       const activeElement = document.activeElement;
       const isClickingSuggestion = activeElement?.closest('[data-suggestion-button]');
-      
+
       if (!selectedAddress && query.length > 0 && !showSuggestions && !isClickingSuggestion) {
         validateUserInput();
       }
     }, 150);
   };
 
-  const handleSuggestionKeyDown = (
-    e: React.KeyboardEvent,
-    index: number,
-    suggestion: AddressOption
-  ) => {
+  const handleSuggestionKeyDown = (e: React.KeyboardEvent, index: number, suggestion: AddressOption) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleAddressSelect(suggestion);
@@ -210,11 +207,11 @@ export function AddressAutocomplete({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
-      
+
       // Don't close if clicking inside the input or suggestion container
       const clickedInsideInput = searchRef.current?.contains(target);
       const clickedInsideSuggestions = suggestionContainerRef.current?.contains(target);
-      
+
       if (!clickedInsideInput && !clickedInsideSuggestions) {
         setShowSuggestions(false);
       }
@@ -261,7 +258,7 @@ export function AddressAutocomplete({
   return (
     <div className={`relative ${className}`}>
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">📍</span>
+        <span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2">📍</span>
         <Input
           ref={searchRef}
           type="text"
@@ -273,42 +270,44 @@ export function AddressAutocomplete({
           className="pl-10"
         />
         {isLoading && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground animate-pulse">🔄</span>
+          <span className="text-muted-foreground absolute top-1/2 right-3 -translate-y-1/2 animate-pulse">🔄</span>
         )}
       </div>
-
 
       {showSuggestions && suggestions.length > 0 && (
         <div ref={suggestionContainerRef}>
           <Card className="absolute top-full z-50 mt-1 w-full shadow-lg">
             <CardContent className="p-0">
-            {suggestions.map((suggestion, index) => (
-              <button
-                key={suggestion.place_id}
-                ref={(el) => { suggestionRefs.current[index] = el; }}
-                data-suggestion-button="true"
-                type="button"
-                className="flex w-full items-start gap-3 p-3 text-left hover:bg-muted focus:bg-muted focus:outline-none"
-                onMouseUp={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleAddressSelect(suggestion);
-                }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                onKeyDown={(e) => handleSuggestionKeyDown(e, index, suggestion)}
-              >
-                <span className="mt-0.5 text-muted-foreground">📍</span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{suggestion.display_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {suggestion.type} • {parseFloat(suggestion.lat).toFixed(4)}, {parseFloat(suggestion.lon).toFixed(4)}
-                  </p>
-                </div>
-              </button>
-            ))}
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={suggestion.place_id}
+                  ref={(el) => {
+                    suggestionRefs.current[index] = el;
+                  }}
+                  data-suggestion-button="true"
+                  type="button"
+                  className="hover:bg-muted focus:bg-muted flex w-full items-start gap-3 p-3 text-left focus:outline-none"
+                  onMouseUp={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddressSelect(suggestion);
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onKeyDown={(e) => handleSuggestionKeyDown(e, index, suggestion)}
+                >
+                  <span className="text-muted-foreground mt-0.5">📍</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">{suggestion.display_name}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {suggestion.type} • {parseFloat(suggestion.lat).toFixed(4)},{' '}
+                      {parseFloat(suggestion.lon).toFixed(4)}
+                    </p>
+                  </div>
+                </button>
+              ))}
             </CardContent>
           </Card>
         </div>
@@ -317,8 +316,10 @@ export function AddressAutocomplete({
       {showSuggestions && suggestions.length === 0 && query.length >= 3 && !isLoading && (
         <Card className="absolute top-full z-50 mt-1 w-full shadow-lg">
           <CardContent className="p-3">
-            <p className="text-sm text-muted-foreground">No locations found. Try a different search term.</p>
-            <p className="text-xs text-orange-600 mt-1">💡 You must select from search results - manual input is not supported</p>
+            <p className="text-muted-foreground text-sm">No locations found. Try a different search term.</p>
+            <p className="mt-1 text-xs text-orange-600">
+              💡 You must select from search results - manual input is not supported
+            </p>
           </CardContent>
         </Card>
       )}

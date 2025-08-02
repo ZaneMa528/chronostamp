@@ -1,29 +1,30 @@
 import { createClient } from '@libsql/client';
 
 const db = createClient({
-  url: 'file:db.sqlite'
+  url: 'file:db.sqlite',
 });
 
 async function seedData() {
   console.log('🌱 Seeding demo data directly...');
-  
+
   // Check existing data
   const existing = await db.execute('SELECT COUNT(*) as count FROM chronostamp_events');
   const count = existing.rows[0]?.count;
-  
+
   if (count && Number(count) > 0) {
     console.log(`✅ Database already has ${count} events`);
     return;
   }
-  
+
   console.log('📦 Inserting demo events...');
-  
+
   // Insert demo events
   const demoEvents = [
     {
       id: 'demo_event_1',
       name: 'DevConf 2024',
-      description: 'The premier developer conference featuring cutting-edge technologies, expert speakers, and networking opportunities for developers worldwide.',
+      description:
+        'The premier developer conference featuring cutting-edge technologies, expert speakers, and networking opportunities for developers worldwide.',
       imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&h=500&fit=crop',
       contractAddress: null,
       eventCode: 'DEVCONF2024',
@@ -32,12 +33,13 @@ async function seedData() {
       totalClaimed: 142,
       maxSupply: 500,
       createdAt: Math.floor(Date.now() / 1000),
-      updatedAt: null
+      updatedAt: null,
     },
     {
-      id: 'demo_event_2', 
+      id: 'demo_event_2',
       name: 'Web3 Summit',
-      description: 'Exploring the future of decentralized web, blockchain technologies, and the evolution of digital ownership and privacy.',
+      description:
+        'Exploring the future of decentralized web, blockchain technologies, and the evolution of digital ownership and privacy.',
       imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=500&fit=crop',
       contractAddress: null,
       eventCode: 'WEB3SUMMIT',
@@ -46,12 +48,13 @@ async function seedData() {
       totalClaimed: 89,
       maxSupply: 300,
       createdAt: Math.floor(Date.now() / 1000),
-      updatedAt: null
+      updatedAt: null,
     },
     {
       id: 'demo_event_3',
-      name: 'AI Workshop', 
-      description: 'Hands-on machine learning workshop covering neural networks, deep learning frameworks, and practical AI implementation strategies.',
+      name: 'AI Workshop',
+      description:
+        'Hands-on machine learning workshop covering neural networks, deep learning frameworks, and practical AI implementation strategies.',
       imageUrl: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=500&h=500&fit=crop',
       contractAddress: null,
       eventCode: 'AIWORKSHOP',
@@ -60,10 +63,10 @@ async function seedData() {
       totalClaimed: 67,
       maxSupply: 200,
       createdAt: Math.floor(Date.now() / 1000),
-      updatedAt: null
-    }
+      updatedAt: null,
+    },
   ];
-  
+
   for (const event of demoEvents) {
     await db.execute({
       sql: `INSERT INTO chronostamp_events 
@@ -71,7 +74,7 @@ async function seedData() {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         event.id,
-        event.name, 
+        event.name,
         event.description,
         event.imageUrl,
         event.contractAddress,
@@ -81,12 +84,12 @@ async function seedData() {
         event.totalClaimed,
         event.maxSupply,
         event.createdAt,
-        event.updatedAt
-      ]
+        event.updatedAt,
+      ],
     });
     console.log(`✅ Created: ${event.name}`);
   }
-  
+
   // Verify insertion
   const result = await db.execute('SELECT name, eventCode, totalClaimed FROM chronostamp_events');
   console.log('\n🎉 Demo data inserted successfully!');
@@ -94,7 +97,7 @@ async function seedData() {
   result.rows.forEach((row, index) => {
     console.log(`${index + 1}. ${row.name} (${row.eventCode}) - ${row.totalClaimed} claimed`);
   });
-  
+
   console.log('\n✨ Database ready for testing!');
 }
 

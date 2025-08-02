@@ -16,7 +16,7 @@ function formatTimeMessage(date: Date, userTimeZone?: string): string {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
   });
 
   // If user timezone is provided and different from AEST, show both
@@ -29,9 +29,9 @@ function formatTimeMessage(date: Date, userTimeZone?: string): string {
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
       });
-      
+
       // Get timezone abbreviation
       const userTzName = getUserTimeZoneName(userTimeZone);
       return `${localTime} ${userTzName} (${aestTime} AEST)`;
@@ -40,7 +40,7 @@ function formatTimeMessage(date: Date, userTimeZone?: string): string {
       return `${aestTime} AEST`;
     }
   }
-  
+
   return `${aestTime} AEST`;
 }
 
@@ -48,7 +48,7 @@ function formatTimeMessage(date: Date, userTimeZone?: string): string {
 function getUserTimeZoneName(timeZone: string): string {
   const tzMap: Record<string, string> = {
     'America/New_York': 'EST',
-    'America/Chicago': 'CST', 
+    'America/Chicago': 'CST',
     'America/Denver': 'MST',
     'America/Los_Angeles': 'PST',
     'Europe/London': 'GMT',
@@ -58,14 +58,14 @@ function getUserTimeZoneName(timeZone: string): string {
     'Australia/Sydney': 'AEST',
     'Australia/Melbourne': 'AEST',
   };
-  
+
   return tzMap[timeZone] ?? 'Local';
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { 
-      eventCode?: string; 
+    const body = (await request.json()) as {
+      eventCode?: string;
       userAddress?: string;
       userTimeZone?: string; // Optional: user's timezone for localized error messages
       userLatitude?: number; // Optional: user's latitude for location verification
@@ -76,12 +76,12 @@ export async function POST(request: Request) {
     // Validate required fields
     if (!eventCode || !userAddress) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Missing required fields',
-          message: 'Event code and user address are required'
+          message: 'Event code and user address are required',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -92,59 +92,56 @@ export async function POST(request: Request) {
 
     if (!event) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Event not found',
-          message: `No event found with code: ${eventCode}`
+          message: `No event found with code: ${eventCode}`,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Check if user already claimed this event
     const existingClaim = await db.query.claims.findFirst({
-      where: and(
-        eq(claims.userAddress, userAddress),
-        eq(claims.eventId, event.id)
-      ),
+      where: and(eq(claims.userAddress, userAddress), eq(claims.eventId, event.id)),
     });
-    
+
     if (existingClaim) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Already claimed',
-          message: 'You have already claimed a ChronoStamp for this event'
+          message: 'You have already claimed a ChronoStamp for this event',
         },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
     // Check if event has reached max supply
     if (event.maxSupply && event.totalClaimed >= event.maxSupply) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Event sold out',
-          message: 'This event has reached its maximum supply'
+          message: 'This event has reached its maximum supply',
         },
-        { status: 410 }
+        { status: 410 },
       );
     }
 
     // Check claim time restrictions (backward compatible)
     const now = new Date();
-    
+
     // If claimStartTime is set, check if claiming has started
     if (event.claimStartTime && now < new Date(event.claimStartTime)) {
       const startTime = new Date(event.claimStartTime);
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Claiming not yet available',
-          message: `Claiming opens on ${formatTimeMessage(startTime, userTimeZone)}`
+          message: `Claiming opens on ${formatTimeMessage(startTime, userTimeZone)}`,
         },
-        { status: 423 } // 423 Locked - resource temporarily unavailable
+        { status: 423 }, // 423 Locked - resource temporarily unavailable
       );
     }
 
@@ -152,12 +149,12 @@ export async function POST(request: Request) {
     if (event.claimEndTime && now > new Date(event.claimEndTime)) {
       const endTime = new Date(event.claimEndTime);
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Claiming period ended',
-          message: `Claiming closed on ${formatTimeMessage(endTime, userTimeZone)}`
+          message: `Claiming closed on ${formatTimeMessage(endTime, userTimeZone)}`,
         },
-        { status: 410 } // 410 Gone - resource no longer available
+        { status: 410 }, // 410 Gone - resource no longer available
       );
     }
 
@@ -166,24 +163,25 @@ export async function POST(request: Request) {
       // Event has location restriction, validate user location
       if (userLatitude === undefined || userLongitude === undefined) {
         return NextResponse.json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'Location required',
-            message: 'This event requires location verification. Please enable location access to claim your ChronoStamp.'
+            message:
+              'This event requires location verification. Please enable location access to claim your ChronoStamp.',
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
       // Validate coordinates
       if (!isValidCoordinates(userLatitude, userLongitude)) {
         return NextResponse.json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'Invalid location',
-            message: 'Invalid location coordinates provided'
+            message: 'Invalid location coordinates provided',
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -199,18 +197,18 @@ export async function POST(request: Request) {
       const allowedRadius = event.locationRadius ?? 4000; // Default to 4km
 
       const locationCheck = checkLocationRange(userLocation, eventLocation, allowedRadius);
-      
+
       if (!locationCheck.isWithinRange) {
         const locationName = event.locationName ?? 'the event location';
         const errorMessage = formatLocationError(locationName, allowedRadius, locationCheck.distance);
-        
+
         return NextResponse.json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'Location restricted',
-            message: errorMessage
+            message: errorMessage,
           },
-          { status: 403 } // 403 Forbidden - user not in allowed location
+          { status: 403 }, // 403 Forbidden - user not in allowed location
         );
       }
     }
@@ -218,36 +216,36 @@ export async function POST(request: Request) {
     // Validate event has contract address for on-chain claiming
     if (!event.contractAddress) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Contract not deployed',
-          message: 'This event does not have a smart contract deployed yet'
+          message: 'This event does not have a smart contract deployed yet',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Validate signer configuration
     if (!validateSignerConfig()) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Server configuration error',
-          message: 'Signature service is not properly configured'
+          message: 'Signature service is not properly configured',
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // Validate RPC configuration for contract interaction
     if (!env.RPC_URL) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'RPC not configured',
-          message: 'Blockchain RPC endpoint is not configured'
+          message: 'Blockchain RPC endpoint is not configured',
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -272,20 +270,19 @@ export async function POST(request: Request) {
           imageUrl: event.imageUrl,
           eventDate: event.eventDate,
           organizer: event.organizer,
-        }
+        },
       },
       message: 'Signature generated, please confirm transaction in your wallet',
     });
-
   } catch (error) {
     console.error('Database error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to claim ChronoStamp',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -298,12 +295,12 @@ export async function GET(request: Request) {
 
     if (!userAddress) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Missing user address',
-          message: 'User address parameter is required'
+          message: 'User address parameter is required',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -314,12 +311,12 @@ export async function GET(request: Request) {
 
     // Get event details for each claim
     const userStamps: ChronoStamp[] = [];
-    
+
     for (const claim of userClaims) {
       const event = await db.query.events.findFirst({
         where: eq(events.id, claim.eventId),
       });
-      
+
       if (event) {
         userStamps.push({
           id: claim.id,
@@ -340,16 +337,15 @@ export async function GET(request: Request) {
       data: userStamps,
       total: userStamps.length,
     });
-
   } catch (error) {
     console.error('Database error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to fetch user stamps',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

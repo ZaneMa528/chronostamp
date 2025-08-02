@@ -20,7 +20,7 @@ interface NotificationState {
   addNotification: (notification: Omit<NotificationData, 'id'>) => void;
   removeNotification: (id: string) => void;
   clearAllNotifications: () => void;
-  
+
   // Convenience methods
   showSuccess: (message: string, options?: Partial<Omit<NotificationData, 'id' | 'type' | 'message'>>) => void;
   showError: (message: string, options?: Partial<Omit<NotificationData, 'id' | 'type' | 'message'>>) => void;
@@ -31,7 +31,7 @@ interface NotificationState {
 export const useNotificationStore = create<NotificationState>()(
   devtools((set, get) => ({
     notifications: [],
-    
+
     addNotification: (notification) => {
       const id = `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const newNotification: NotificationData = {
@@ -40,22 +40,22 @@ export const useNotificationStore = create<NotificationState>()(
         showProgress: true,
         ...notification,
       };
-      
+
       set((state) => ({
-        notifications: [...state.notifications, newNotification]
+        notifications: [...state.notifications, newNotification],
       }));
     },
-    
+
     removeNotification: (id) => {
       set((state) => ({
-        notifications: state.notifications.filter(n => n.id !== id)
+        notifications: state.notifications.filter((n) => n.id !== id),
       }));
     },
-    
+
     clearAllNotifications: () => {
       set({ notifications: [] });
     },
-    
+
     showSuccess: (message, options = {}) => {
       get().addNotification({
         type: 'success',
@@ -63,7 +63,7 @@ export const useNotificationStore = create<NotificationState>()(
         ...options,
       });
     },
-    
+
     showError: (message, options = {}) => {
       get().addNotification({
         type: 'error',
@@ -72,7 +72,7 @@ export const useNotificationStore = create<NotificationState>()(
         ...options,
       });
     },
-    
+
     showInfo: (message, options = {}) => {
       get().addNotification({
         type: 'info',
@@ -80,7 +80,7 @@ export const useNotificationStore = create<NotificationState>()(
         ...options,
       });
     },
-    
+
     showWarning: (message, options = {}) => {
       get().addNotification({
         type: 'warning',
@@ -89,5 +89,5 @@ export const useNotificationStore = create<NotificationState>()(
         ...options,
       });
     },
-  }))
+  })),
 );

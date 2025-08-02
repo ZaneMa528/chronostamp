@@ -1,9 +1,9 @@
-import { defineConfig } from 'vitest/config'
-import { resolve } from 'path'
-import dotenv from 'dotenv'
+import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
+import dotenv from 'dotenv';
 
 // Load environment variables from .env file
-dotenv.config()
+dotenv.config();
 
 export default defineConfig({
   test: {
@@ -13,13 +13,13 @@ export default defineConfig({
     pool: 'forks',
     poolOptions: {
       forks: {
-        singleFork: true
-      }
-    }
+        singleFork: true,
+      },
+    },
   },
   resolve: {
     alias: {
       '~': resolve(__dirname, './src'),
     },
   },
-})
+});

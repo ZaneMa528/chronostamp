@@ -1,5 +1,5 @@
-import { sql } from "drizzle-orm";
-import { index, sqliteTableCreator } from "drizzle-orm/sqlite-core";
+import { sql } from 'drizzle-orm';
+import { index, sqliteTableCreator } from 'drizzle-orm/sqlite-core';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -11,7 +11,7 @@ export const createTable = sqliteTableCreator((name) => `chronostamp_${name}`);
 
 // Events table for storing ChronoStamp events
 export const events = createTable(
-  "events",
+  'events',
   (d) => ({
     id: d.text().primaryKey(),
     name: d.text({ length: 256 }).notNull(),
@@ -20,60 +20,60 @@ export const events = createTable(
     contractAddress: d.text({ length: 42 }),
     eventCode: d.text({ length: 50 }).notNull().unique(),
     organizer: d.text({ length: 42 }).notNull(),
-    eventDate: d.integer({ mode: "timestamp" }).notNull(),
-    claimStartTime: d.integer({ mode: "timestamp" }), // Optional: when claiming opens (null = no restriction)
-    claimEndTime: d.integer({ mode: "timestamp" }),   // Optional: when claiming closes (null = no restriction)
-    locationLatitude: d.real(),    // Optional: event latitude (null = no location restriction)
-    locationLongitude: d.real(),   // Optional: event longitude (null = no location restriction)
+    eventDate: d.integer({ mode: 'timestamp' }).notNull(),
+    claimStartTime: d.integer({ mode: 'timestamp' }), // Optional: when claiming opens (null = no restriction)
+    claimEndTime: d.integer({ mode: 'timestamp' }), // Optional: when claiming closes (null = no restriction)
+    locationLatitude: d.real(), // Optional: event latitude (null = no location restriction)
+    locationLongitude: d.real(), // Optional: event longitude (null = no location restriction)
     locationRadius: d.integer().default(4000), // Optional: allowed radius in meters (default 4km)
-    locationName: d.text(),        // Optional: human-readable location name for display
+    locationName: d.text(), // Optional: human-readable location name for display
     totalClaimed: d.integer().default(0).notNull(),
     maxSupply: d.integer().notNull(),
     createdAt: d
-      .integer({ mode: "timestamp" })
+      .integer({ mode: 'timestamp' })
       .default(sql`(unixepoch())`)
       .notNull(),
-    updatedAt: d.integer({ mode: "timestamp" }).$onUpdate(() => new Date()),
+    updatedAt: d.integer({ mode: 'timestamp' }).$onUpdate(() => new Date()),
   }),
   (t) => [
-    index("event_code_idx").on(t.eventCode),
-    index("organizer_idx").on(t.organizer),
-    index("created_at_idx").on(t.createdAt),
+    index('event_code_idx').on(t.eventCode),
+    index('organizer_idx').on(t.organizer),
+    index('created_at_idx').on(t.createdAt),
   ],
 );
 
 // Claims table for storing user claim records
 export const claims = createTable(
-  "claims",
+  'claims',
   (d) => ({
-    id: d.integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
+    id: d.integer({ mode: 'number' }).primaryKey({ autoIncrement: true }),
     userAddress: d.text({ length: 42 }).notNull(),
     eventId: d.text().notNull(),
     tokenId: d.text(),
     transactionHash: d.text({ length: 66 }),
     claimedAt: d
-      .integer({ mode: "timestamp" })
+      .integer({ mode: 'timestamp' })
       .default(sql`(unixepoch())`)
       .notNull(),
   }),
   (t) => [
-    index("user_address_idx").on(t.userAddress),
-    index("event_id_idx").on(t.eventId),
-    index("claimed_at_idx").on(t.claimedAt),
+    index('user_address_idx').on(t.userAddress),
+    index('event_id_idx').on(t.eventId),
+    index('claimed_at_idx').on(t.claimedAt),
   ],
 );
 
 // Legacy posts table (keeping for reference)
 export const posts = createTable(
-  "post",
+  'post',
   (d) => ({
-    id: d.integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
+    id: d.integer({ mode: 'number' }).primaryKey({ autoIncrement: true }),
     name: d.text({ length: 256 }),
     createdAt: d
-      .integer({ mode: "timestamp" })
+      .integer({ mode: 'timestamp' })
       .default(sql`(unixepoch())`)
       .notNull(),
-    updatedAt: d.integer({ mode: "timestamp" }).$onUpdate(() => new Date()),
+    updatedAt: d.integer({ mode: 'timestamp' }).$onUpdate(() => new Date()),
   }),
-  (t) => [index("name_idx").on(t.name)],
+  (t) => [index('name_idx').on(t.name)],
 );

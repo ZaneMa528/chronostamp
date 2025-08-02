@@ -1,69 +1,51 @@
-"use client";
+'use client';
 
-import {
-  useState,
-  useRef,
-  type ChangeEvent,
-  useCallback,
-  useEffect,
-} from "react";
-import { Button } from "~/components/ui/Button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/Card";
-import { Input } from "~/components/ui/Input";
-import { Textarea } from "~/components/ui/Textarea";
-import { DatePicker } from "~/components/ui/DatePicker";
-import { AddressAutocomplete, type SelectedAddress } from "~/components/ui/AddressAutocomplete";
-import { useAppStore } from "~/stores/useAppStore";
-import { useNotificationStore } from "~/stores/useNotificationStore";
-import { ApiClient } from "~/lib/api";
-import Image from "next/image";
-import { useWriteContract } from "wagmi";
-import { parseAbi } from "viem";
+import { useState, useRef, type ChangeEvent, useCallback, useEffect } from 'react';
+import { Button } from '~/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/Card';
+import { Input } from '~/components/ui/Input';
+import { Textarea } from '~/components/ui/Textarea';
+import { DatePicker } from '~/components/ui/DatePicker';
+import { AddressAutocomplete, type SelectedAddress } from '~/components/ui/AddressAutocomplete';
+import { useAppStore } from '~/stores/useAppStore';
+import { useNotificationStore } from '~/stores/useNotificationStore';
+import { ApiClient } from '~/lib/api';
+import Image from 'next/image';
+import { useWriteContract } from 'wagmi';
+import { parseAbi } from 'viem';
 
 // Factory contract configurations
-const FACTORY_CONTRACT_ADDRESS = process.env
-  .NEXT_PUBLIC_FACTORY_CONTRACT_ADDRESS as `0x${string}`;
+const FACTORY_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_CONTRACT_ADDRESS as `0x${string}`;
 const FACTORY_ABI = parseAbi([
-  "function createNewBadge(string memory name, string memory symbol, string memory baseTokenURI, address trustedSigner) external returns (address)",
+  'function createNewBadge(string memory name, string memory symbol, string memory baseTokenURI, address trustedSigner) external returns (address)',
 ]);
 
 interface CreateEventFormProps {
-  onPreviewUpdate: (data: {
-    name: string;
-    description: string;
-    imageUrl: string;
-  }) => void;
+  onPreviewUpdate: (data: { name: string; description: string; imageUrl: string }) => void;
 }
 
 // Event code validation states
-type EventCodeStatus = "idle" | "checking" | "available" | "taken" | "error";
+type EventCodeStatus = 'idle' | 'checking' | 'available' | 'taken' | 'error';
 
 export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    eventCode: "",
-    eventDate: "",
-    maxSupply: "",
-    claimStartTime: "",
-    claimEndTime: "",
+    name: '',
+    description: '',
+    eventCode: '',
+    eventDate: '',
+    maxSupply: '',
+    claimStartTime: '',
+    claimEndTime: '',
   });
   const [useClaimPeriod, setUseClaimPeriod] = useState(false);
   const [useLocationRestriction, setUseLocationRestriction] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<SelectedAddress | null>(null);
-  const [locationRadius, setLocationRadius] = useState("4000"); // Default 4km
-  const [locationError, setLocationError] = useState<string>("");
+  const [locationRadius, setLocationRadius] = useState('4000'); // Default 4km
+  const [locationError, setLocationError] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
-  const [eventCodeStatus, setEventCodeStatus] =
-    useState<EventCodeStatus>("idle");
-  const [eventCodeMessage, setEventCodeMessage] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [eventCodeStatus, setEventCodeStatus] = useState<EventCodeStatus>('idle');
+  const [eventCodeMessage, setEventCodeMessage] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user, setLoading, ui } = useAppStore();
@@ -75,19 +57,17 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   // Debounced event code checker
   const checkEventCodeAvailability = useCallback(async (eventCode: string) => {
     if (!eventCode || eventCode.length < 3) {
-      setEventCodeStatus("idle");
-      setEventCodeMessage("");
+      setEventCodeStatus('idle');
+      setEventCodeMessage('');
       return;
     }
 
-    setEventCodeStatus("checking");
-    setEventCodeMessage("Checking availability...");
+    setEventCodeStatus('checking');
+    setEventCodeMessage('Checking availability...');
 
     try {
       // Call the events API to check if code exists
-      const response = await fetch(
-        `/api/events?eventCode=${encodeURIComponent(eventCode.toUpperCase())}`,
-      );
+      const response = await fetch(`/api/events?eventCode=${encodeURIComponent(eventCode.toUpperCase())}`);
       const data = (await response.json()) as {
         success: boolean;
         data?: unknown[];
@@ -98,20 +78,20 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
         const codeExists = Array.isArray(data.data) && data.data.length > 0;
 
         if (codeExists) {
-          setEventCodeStatus("taken");
-          setEventCodeMessage("This event code is already taken");
+          setEventCodeStatus('taken');
+          setEventCodeMessage('This event code is already taken');
         } else {
-          setEventCodeStatus("available");
-          setEventCodeMessage("Event code is available!");
+          setEventCodeStatus('available');
+          setEventCodeMessage('Event code is available!');
         }
       } else {
-        setEventCodeStatus("available");
-        setEventCodeMessage("Event code is available!");
+        setEventCodeStatus('available');
+        setEventCodeMessage('Event code is available!');
       }
     } catch (error) {
-      console.error("Error checking event code:", error);
-      setEventCodeStatus("error");
-      setEventCodeMessage("Unable to check availability");
+      console.error('Error checking event code:', error);
+      setEventCodeStatus('error');
+      setEventCodeMessage('Unable to check availability');
     }
   }, []);
 
@@ -126,9 +106,9 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
   const handleInputChange = (field: string, value: string) => {
     const newFormData = { ...formData, [field]: value };
-    
+
     // Auto-set claim period defaults when event date changes
-    if (field === "eventDate" && value && useClaimPeriod) {
+    if (field === 'eventDate' && value && useClaimPeriod) {
       const eventDate = new Date(value);
       if (!newFormData.claimStartTime) {
         // Format as local datetime-local (YYYY-MM-DDTHH:mm)
@@ -150,7 +130,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
         newFormData.claimEndTime = `${year}-${month}-${day}T${hour}:${minute}`;
       }
     }
-    
+
     setFormData(newFormData);
 
     // Update preview
@@ -184,37 +164,32 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (
-      !formData.name ||
-      !formData.description ||
-      !formData.eventCode ||
-      !imageFile
-    ) {
-      showWarning("Please fill in all required fields and upload an image");
+    if (!formData.name || !formData.description || !formData.eventCode || !imageFile) {
+      showWarning('Please fill in all required fields and upload an image');
       return;
     }
 
     if (!user.isConnected) {
-      showWarning("Please connect your wallet first");
+      showWarning('Please connect your wallet first');
       return;
     }
 
     // Validate location restriction if enabled
     if (useLocationRestriction && !selectedLocation) {
-      setLocationError("Please select a valid location from the search results");
-      showWarning("Please select a valid event location");
+      setLocationError('Please select a valid location from the search results');
+      showWarning('Please select a valid event location');
       return;
     }
 
     try {
-      setLoading(true, "Uploading image to IPFS...");
+      setLoading(true, 'Uploading image to IPFS...');
 
       // Step 1: Upload image to IPFS
       const imageFormData = new FormData();
-      imageFormData.append("file", imageFile);
+      imageFormData.append('file', imageFile);
 
-      const imageResponse = await fetch("/api/upload-image", {
-        method: "POST",
+      const imageResponse = await fetch('/api/upload-image', {
+        method: 'POST',
         body: imageFormData,
       });
 
@@ -228,16 +203,16 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
       };
 
       if (!imageResult.success) {
-        throw new Error(imageResult.message ?? "Failed to upload image");
+        throw new Error(imageResult.message ?? 'Failed to upload image');
       }
 
-      setLoading(true, "Uploading metadata to IPFS...");
+      setLoading(true, 'Uploading metadata to IPFS...');
 
       // Step 2: Upload metadata to IPFS
-      const metadataResponse = await fetch("/api/upload-metadata", {
-        method: "POST",
+      const metadataResponse = await fetch('/api/upload-metadata', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: formData.name,
@@ -258,57 +233,48 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
       };
 
       if (!metadataResult.success || !metadataResult.data?.ipfsHash) {
-        throw new Error(
-          metadataResult.message ??
-            "Failed to upload metadata or get IPFS hash",
-        );
+        throw new Error(metadataResult.message ?? 'Failed to upload metadata or get IPFS hash');
       }
 
       const metadataIpfsHash = metadataResult.data.ipfsHash;
 
-      setLoading(true, "Deploying contract on-chain...");
+      setLoading(true, 'Deploying contract on-chain...');
 
       // Step 3: Deploy contract using user's wallet
       if (!FACTORY_CONTRACT_ADDRESS) {
-        throw new Error("Factory contract address not configured");
+        throw new Error('Factory contract address not configured');
       }
 
       const trustedSigner =
-        process.env.NODE_ENV === "production"
+        process.env.NODE_ENV === 'production'
           ? process.env.NEXT_PUBLIC_SIGNER_ADDRESS_PROD!
           : process.env.NEXT_PUBLIC_SIGNER_ADDRESS_DEV!;
 
       const baseTokenURI = `ipfs://${metadataIpfsHash}`;
 
       // Use wagmi to call the factory contract
-      const contractTxHash = await new Promise<`0x${string}`>(
-        (resolve, reject) => {
-          writeContract(
-            {
-              address: FACTORY_CONTRACT_ADDRESS,
-              abi: FACTORY_ABI,
-              functionName: "createNewBadge",
-              args: [
-                "ChronoStamp Badge", // name
-                "CSB", // symbol
-                baseTokenURI,
-                trustedSigner as `0x${string}`,
-              ],
-            },
-            {
-              onSuccess: (hash) => resolve(hash),
-              onError: (error) =>
-                reject(
-                  error instanceof Error
-                    ? error
-                    : new Error(error?.message ?? "Contract deployment failed"),
-                ),
-            },
-          );
-        },
-      );
+      const contractTxHash = await new Promise<`0x${string}`>((resolve, reject) => {
+        writeContract(
+          {
+            address: FACTORY_CONTRACT_ADDRESS,
+            abi: FACTORY_ABI,
+            functionName: 'createNewBadge',
+            args: [
+              'ChronoStamp Badge', // name
+              'CSB', // symbol
+              baseTokenURI,
+              trustedSigner as `0x${string}`,
+            ],
+          },
+          {
+            onSuccess: (hash) => resolve(hash),
+            onError: (error) =>
+              reject(error instanceof Error ? error : new Error(error?.message ?? 'Contract deployment failed')),
+          },
+        );
+      });
 
-      setLoading(true, "Waiting for contract deployment confirmation...");
+      setLoading(true, 'Waiting for contract deployment confirmation...');
 
       // Wait for transaction to be mined using fetch
       let receipt: { logs?: Array<{ address?: string }> } | null = null;
@@ -317,19 +283,16 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
       while (!receipt && attempts < maxAttempts) {
         try {
-          const response = await fetch(
-            `https://sepolia-rollup.arbitrum.io/rpc`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                jsonrpc: "2.0",
-                method: "eth_getTransactionReceipt",
-                params: [contractTxHash],
-                id: 1,
-              }),
-            },
-          );
+          const response = await fetch(`https://sepolia-rollup.arbitrum.io/rpc`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              method: 'eth_getTransactionReceipt',
+              params: [contractTxHash],
+              id: 1,
+            }),
+          });
           const result = (await response.json()) as {
             result?: { logs?: Array<{ address?: string }> };
           };
@@ -338,109 +301,89 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             break;
           }
         } catch {
-          console.log("Waiting for transaction confirmation...");
+          console.log('Waiting for transaction confirmation...');
         }
         await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
         attempts++;
       }
 
       if (!receipt) {
-        throw new Error("Transaction confirmation timeout");
+        throw new Error('Transaction confirmation timeout');
       }
 
       // Get the deployed contract address from logs
       const contractAddress = receipt.logs?.[0]?.address;
       if (!contractAddress) {
-        throw new Error(
-          "Failed to get contract address from transaction receipt",
-        );
+        throw new Error('Failed to get contract address from transaction receipt');
       }
 
-      setLoading(true, "Saving event to database...");
+      setLoading(true, 'Saving event to database...');
 
       // Step 4: Create event record with deployed contract address
       const response = await ApiClient.createEvent({
         name: formData.name,
         description: formData.description,
-        imageUrl: imageResult.data?.gatewayUrl ?? "",
+        imageUrl: imageResult.data?.gatewayUrl ?? '',
         eventCode: formData.eventCode.toUpperCase(),
-        organizer: user.address ?? "Unknown",
+        organizer: user.address ?? 'Unknown',
         eventDate: new Date(formData.eventDate || Date.now()),
-        maxSupply: formData.maxSupply
-          ? parseInt(formData.maxSupply)
-          : undefined,
+        maxSupply: formData.maxSupply ? parseInt(formData.maxSupply) : undefined,
         contractAddress,
         metadataIpfsHash,
         // Optional claim period (backward compatible)
-        claimStartTime: formData.claimStartTime 
-          ? new Date(formData.claimStartTime) 
-          : undefined,
-        claimEndTime: formData.claimEndTime 
-          ? new Date(formData.claimEndTime) 
-          : undefined,
+        claimStartTime: formData.claimStartTime ? new Date(formData.claimStartTime) : undefined,
+        claimEndTime: formData.claimEndTime ? new Date(formData.claimEndTime) : undefined,
         // Optional location restriction (backward compatible)
-        locationLatitude: useLocationRestriction && selectedLocation 
-          ? selectedLocation.latitude 
-          : undefined,
-        locationLongitude: useLocationRestriction && selectedLocation 
-          ? selectedLocation.longitude 
-          : undefined,
-        locationRadius: useLocationRestriction && selectedLocation 
-          ? parseInt(locationRadius) 
-          : undefined,
-        locationName: useLocationRestriction && selectedLocation 
-          ? selectedLocation.name 
-          : undefined,
+        locationLatitude: useLocationRestriction && selectedLocation ? selectedLocation.latitude : undefined,
+        locationLongitude: useLocationRestriction && selectedLocation ? selectedLocation.longitude : undefined,
+        locationRadius: useLocationRestriction && selectedLocation ? parseInt(locationRadius) : undefined,
+        locationName: useLocationRestriction && selectedLocation ? selectedLocation.name : undefined,
       });
 
       if (!response.success) {
-        throw new Error(
-          response.message ?? response.error ?? "Failed to create event",
-        );
+        throw new Error(response.message ?? response.error ?? 'Failed to create event');
       }
 
       showSuccess(`ChronoStamp event created successfully! 🎉`, {
-        title: "Event Created",
+        title: 'Event Created',
         duration: 10000,
         actions: [
           {
-            label: "Copy Event Code",
+            label: 'Copy Event Code',
             onClick: () => {
-              void navigator.clipboard.writeText(
-                response.data?.eventCode ?? "",
-              );
-              showSuccess("Event code copied to clipboard!");
+              void navigator.clipboard.writeText(response.data?.eventCode ?? '');
+              showSuccess('Event code copied to clipboard!');
             },
           },
           {
-            label: "View Event",
+            label: 'View Event',
             onClick: () => {
               window.location.href = `/event/${response.data?.id}`;
             },
-            variant: "outline",
+            variant: 'outline',
           },
         ],
       });
 
       // Reset form
       setFormData({
-        name: "",
-        description: "",
-        eventCode: "",
-        eventDate: "",
-        maxSupply: "",
-        claimStartTime: "",
-        claimEndTime: "",
+        name: '',
+        description: '',
+        eventCode: '',
+        eventDate: '',
+        maxSupply: '',
+        claimStartTime: '',
+        claimEndTime: '',
       });
       setUseClaimPeriod(false);
       setImageFile(null);
-      setImagePreview("");
-      onPreviewUpdate({ name: "", description: "", imageUrl: "" });
+      setImagePreview('');
+      onPreviewUpdate({ name: '', description: '', imageUrl: '' });
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
     } catch (error) {
-      showError("Failed to create event: " + (error as Error).message);
+      showError('Failed to create event: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -450,24 +393,19 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
     <Card>
       <CardHeader>
         <CardTitle>Create ChronoStamp Event</CardTitle>
-        <CardDescription>
-          Fill in the details below to create your unique event NFT stamps
-        </CardDescription>
+        <CardDescription>Fill in the details below to create your unique event NFT stamps</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 sm:space-y-6">
         {/* Event Name */}
         <div>
-          <label
-            htmlFor="eventName"
-            className="mb-2 block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="eventName" className="mb-2 block text-sm font-medium text-gray-700">
             Event Name *
           </label>
           <Input
             id="eventName"
             placeholder="e.g., DevConf 2024"
             value={formData.name}
-            onChange={(e) => handleInputChange("name", e.target.value)}
+            onChange={(e) => handleInputChange('name', e.target.value)}
             disabled={ui.isLoading}
             className="h-12 sm:h-auto"
           />
@@ -475,17 +413,14 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
         {/* Event Description */}
         <div>
-          <label
-            htmlFor="eventDescription"
-            className="mb-2 block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="eventDescription" className="mb-2 block text-sm font-medium text-gray-700">
             Event Description *
           </label>
           <Textarea
             id="eventDescription"
             placeholder="Describe your event and what makes it special..."
             value={formData.description}
-            onChange={(e) => handleInputChange("description", e.target.value)}
+            onChange={(e) => handleInputChange('description', e.target.value)}
             disabled={ui.isLoading}
             rows={3}
             className="text-sm sm:text-base"
@@ -494,10 +429,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
         {/* Event Code */}
         <div>
-          <label
-            htmlFor="eventCode"
-            className="mb-2 block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="eventCode" className="mb-2 block text-sm font-medium text-gray-700">
             Secret Event Code *
           </label>
           <div className="relative">
@@ -505,60 +437,33 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               id="eventCode"
               placeholder="e.g., DEVCONF2025SECRET"
               value={formData.eventCode}
-              onChange={(e) =>
-                handleInputChange("eventCode", e.target.value.toUpperCase())
-              }
+              onChange={(e) => handleInputChange('eventCode', e.target.value.toUpperCase())}
               disabled={ui.isLoading}
               className={`h-12 pr-10 font-mono text-sm sm:h-auto sm:text-base ${
-                eventCodeStatus === "available"
-                  ? "border-green-300 focus:border-green-500"
-                  : eventCodeStatus === "taken"
-                    ? "border-red-300 focus:border-red-500"
-                    : "border-gray-300"
+                eventCodeStatus === 'available'
+                  ? 'border-green-300 focus:border-green-500'
+                  : eventCodeStatus === 'taken'
+                    ? 'border-red-300 focus:border-red-500'
+                    : 'border-gray-300'
               }`}
             />
             {/* Status indicator */}
             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              {eventCodeStatus === "checking" && (
+              {eventCodeStatus === 'checking' && (
                 <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-gray-400"></div>
               )}
-              {eventCodeStatus === "available" && (
-                <svg
-                  className="h-4 w-4 text-green-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
+              {eventCodeStatus === 'available' && (
+                <svg className="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               )}
-              {eventCodeStatus === "taken" && (
-                <svg
-                  className="h-4 w-4 text-red-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+              {eventCodeStatus === 'taken' && (
+                <svg className="h-4 w-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               )}
-              {eventCodeStatus === "error" && (
-                <svg
-                  className="h-4 w-4 text-red-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+              {eventCodeStatus === 'error' && (
+                <svg className="h-4 w-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -570,28 +475,27 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             </div>
           </div>
           <p className="mt-1 text-xs text-gray-500">
-            This secret code will be revealed to attendees at the event to claim
-            their ChronoStamp
+            This secret code will be revealed to attendees at the event to claim their ChronoStamp
           </p>
-          {eventCodeStatus === "checking" && (
+          {eventCodeStatus === 'checking' && (
             <p className="mt-1 flex items-center text-xs text-gray-500">
               <span className="mr-1">⏳</span>
               {eventCodeMessage}
             </p>
           )}
-          {eventCodeStatus === "available" && (
+          {eventCodeStatus === 'available' && (
             <p className="mt-1 flex items-center text-xs text-green-600">
               <span className="mr-1">✅</span>
               {eventCodeMessage}
             </p>
           )}
-          {eventCodeStatus === "taken" && (
+          {eventCodeStatus === 'taken' && (
             <p className="mt-1 flex items-center text-xs text-red-600">
               <span className="mr-1">❌</span>
               {eventCodeMessage}
             </p>
           )}
-          {eventCodeStatus === "error" && (
+          {eventCodeStatus === 'error' && (
             <p className="mt-1 flex items-center text-xs text-red-600">
               <span className="mr-1">⚠️</span>
               {eventCodeMessage}
@@ -601,10 +505,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
         {/* Event Image */}
         <div>
-          <label
-            htmlFor="eventImage"
-            className="mb-2 block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="eventImage" className="mb-2 block text-sm font-medium text-gray-700">
             Event Artwork *
           </label>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
@@ -615,21 +516,11 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               disabled={ui.isLoading}
               className="w-full sm:w-auto"
             >
-              {imageFile ? "Change Image" : "Upload Image"}
+              {imageFile ? 'Change Image' : 'Upload Image'}
             </Button>
-            {imageFile && (
-              <span className="truncate text-xs text-gray-600 sm:text-sm">
-                {imageFile.name}
-              </span>
-            )}
+            {imageFile && <span className="truncate text-xs text-gray-600 sm:text-sm">{imageFile.name}</span>}
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
           {imagePreview && (
             <div className="mt-4">
               <Image
@@ -645,37 +536,31 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
 
         {/* Event Date */}
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Event Date & Time
-          </label>
+          <label className="mb-2 block text-sm font-medium text-gray-700">Event Date & Time</label>
           <DatePicker
             value={formData.eventDate}
-            onChange={(value) => handleInputChange("eventDate", value)}
+            onChange={(value) => handleInputChange('eventDate', value)}
             disabled={ui.isLoading}
             placeholder="Select event date and time"
           />
-          <p className="mt-1 text-xs text-gray-500">
-            When will your event take place?
-          </p>
+          <p className="mt-1 text-xs text-gray-500">When will your event take place?</p>
         </div>
 
         {/* Claim Period */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-medium text-gray-700">
-              Claim Period (Optional)
-            </label>
+          <div className="mb-3 flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700">Claim Period (Optional)</label>
             <button
               type="button"
               onClick={() => {
                 const newUseClaimPeriod = !useClaimPeriod;
                 setUseClaimPeriod(newUseClaimPeriod);
-                
+
                 // Auto-set defaults when enabling claim period
                 if (newUseClaimPeriod && formData.eventDate) {
                   const eventDate = new Date(formData.eventDate);
                   const endTime = new Date(eventDate.getTime() + 24 * 60 * 60 * 1000);
-                  
+
                   // Format start time as local datetime-local
                   const formatLocalDateTime = (date: Date) => {
                     const year = date.getFullYear();
@@ -685,23 +570,23 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
                     const minute = String(date.getMinutes()).padStart(2, '0');
                     return `${year}-${month}-${day}T${hour}:${minute}`;
                   };
-                  
-                  setFormData(prev => ({
+
+                  setFormData((prev) => ({
                     ...prev,
                     claimStartTime: prev.claimStartTime || formatLocalDateTime(eventDate),
                     claimEndTime: prev.claimEndTime || formatLocalDateTime(endTime),
                   }));
                 } else if (!newUseClaimPeriod) {
                   // Clear claim times when disabling
-                  setFormData(prev => ({
+                  setFormData((prev) => ({
                     ...prev,
-                    claimStartTime: "",
-                    claimEndTime: "",
+                    claimStartTime: '',
+                    claimEndTime: '',
                   }));
                 }
               }}
               disabled={ui.isLoading}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none ${
                 useClaimPeriod ? 'bg-purple-600' : 'bg-gray-200'
               }`}
             >
@@ -712,16 +597,14 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               />
             </button>
           </div>
-          
+
           {useClaimPeriod && (
-            <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+            <div className="space-y-4 rounded-lg border bg-gray-50 p-4">
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Claim Start Time
-                </label>
+                <label className="mb-2 block text-sm font-medium text-gray-700">Claim Start Time</label>
                 <DatePicker
                   value={formData.claimStartTime}
-                  onChange={(value) => handleInputChange("claimStartTime", value)}
+                  onChange={(value) => handleInputChange('claimStartTime', value)}
                   disabled={ui.isLoading}
                   placeholder="When can users start claiming?"
                 />
@@ -729,14 +612,12 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
                   Users can start claiming badges from this time (your local time)
                 </p>
               </div>
-              
+
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Claim End Time
-                </label>
+                <label className="mb-2 block text-sm font-medium text-gray-700">Claim End Time</label>
                 <DatePicker
                   value={formData.claimEndTime}
-                  onChange={(value) => handleInputChange("claimEndTime", value)}
+                  onChange={(value) => handleInputChange('claimEndTime', value)}
                   disabled={ui.isLoading}
                   placeholder="When should claiming end?"
                 />
@@ -746,36 +627,33 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               </div>
             </div>
           )}
-          
+
           <p className="mt-2 text-xs text-gray-500">
-            {useClaimPeriod 
+            {useClaimPeriod
               ? `Set specific times when attendees can claim their badges. Times are in your local timezone (${Intl.DateTimeFormat().resolvedOptions().timeZone}).`
-              : "Leave disabled for unlimited claiming"
-            }
+              : 'Leave disabled for unlimited claiming'}
           </p>
         </div>
 
         {/* Location Restriction */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-medium text-gray-700">
-              Location Restriction (Optional)
-            </label>
+          <div className="mb-3 flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700">Location Restriction (Optional)</label>
             <button
               type="button"
               onClick={() => {
                 const newUseLocationRestriction = !useLocationRestriction;
                 setUseLocationRestriction(newUseLocationRestriction);
-                
+
                 // Clear location data when disabling
                 if (!newUseLocationRestriction) {
                   setSelectedLocation(null);
-                  setLocationRadius("4000");
-                  setLocationError("");
+                  setLocationRadius('4000');
+                  setLocationError('');
                 }
               }}
               disabled={ui.isLoading}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none ${
                 useLocationRestriction ? 'bg-purple-600' : 'bg-gray-200'
               }`}
             >
@@ -786,39 +664,30 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               />
             </button>
           </div>
-          
+
           {useLocationRestriction && (
-            <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+            <div className="space-y-4 rounded-lg border bg-gray-50 p-4">
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Event Location
-                </label>
+                <label className="mb-2 block text-sm font-medium text-gray-700">Event Location</label>
                 <AddressAutocomplete
                   onAddressSelect={(address) => {
                     setSelectedLocation(address);
-                    setLocationError(""); // Clear error when valid address is selected
+                    setLocationError(''); // Clear error when valid address is selected
                   }}
                   selectedAddress={selectedLocation}
                   onClear={() => {
                     setSelectedLocation(null);
-                    setLocationError("");
+                    setLocationError('');
                   }}
                   onValidationError={setLocationError}
                   placeholder="Search for event location (e.g., Sydney Opera House)"
                 />
-                {locationError && (
-                  <p className="mt-1 text-sm text-red-600">{locationError}</p>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  Users must be at this location to claim their ChronoStamp
-                </p>
+                {locationError && <p className="mt-1 text-sm text-red-600">{locationError}</p>}
+                <p className="mt-1 text-xs text-gray-500">Users must be at this location to claim their ChronoStamp</p>
               </div>
-              
+
               <div>
-                <label
-                  htmlFor="locationRadius"
-                  className="mb-2 block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="locationRadius" className="mb-2 block text-sm font-medium text-gray-700">
                   Allowed Range
                 </label>
                 <div className="flex items-center gap-2">
@@ -834,9 +703,7 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
                     className="w-24"
                   />
                   <span className="text-sm text-gray-600">meters</span>
-                  <span className="text-xs text-gray-500">
-                    ({(parseInt(locationRadius) / 1000).toFixed(1)}km)
-                  </span>
+                  <span className="text-xs text-gray-500">({(parseInt(locationRadius) / 1000).toFixed(1)}km)</span>
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
                   How far from the location can users be to claim? (Default: 4km for flexible claiming)
@@ -844,21 +711,17 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               </div>
             </div>
           )}
-          
+
           <p className="mt-2 text-xs text-gray-500">
-            {useLocationRestriction 
-              ? "Users will need to be within the specified range of the event location to claim their badge"
-              : "Leave disabled to allow claiming from anywhere"
-            }
+            {useLocationRestriction
+              ? 'Users will need to be within the specified range of the event location to claim their badge'
+              : 'Leave disabled to allow claiming from anywhere'}
           </p>
         </div>
 
         {/* Max Supply */}
         <div>
-          <label
-            htmlFor="maxSupply"
-            className="mb-2 block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="maxSupply" className="mb-2 block text-sm font-medium text-gray-700">
             Max Supply (Optional)
           </label>
           <Input
@@ -866,13 +729,11 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
             type="number"
             placeholder="e.g., 500"
             value={formData.maxSupply}
-            onChange={(e) => handleInputChange("maxSupply", e.target.value)}
+            onChange={(e) => handleInputChange('maxSupply', e.target.value)}
             disabled={ui.isLoading}
             className="h-12 sm:h-auto"
           />
-          <p className="mt-1 text-xs text-gray-500">
-            Leave empty for unlimited supply
-          </p>
+          <p className="mt-1 text-xs text-gray-500">Leave empty for unlimited supply</p>
         </div>
 
         {/* Submit Button */}
@@ -886,42 +747,29 @@ export function CreateEventForm({ onPreviewUpdate }: CreateEventFormProps) {
               !formData.description ||
               !formData.eventCode ||
               !imageFile ||
-              eventCodeStatus === "taken" ||
-              eventCodeStatus === "checking"
+              eventCodeStatus === 'taken' ||
+              eventCodeStatus === 'checking'
             }
             className="h-12 w-full text-sm sm:h-14 sm:text-base"
             size="lg"
           >
-            {ui.isLoading ? ui.loadingMessage : "Create ChronoStamp Event"}
+            {ui.isLoading ? ui.loadingMessage : 'Create ChronoStamp Event'}
           </Button>
 
           {!user.isConnected ? (
-            <p className="mt-3 text-center text-xs text-gray-500 sm:text-sm">
-              Connect your wallet to create events
-            </p>
-          ) : !formData.name ||
-            !formData.description ||
-            !formData.eventCode ||
-            !imageFile ? (
-            <p className="mt-3 text-center text-xs text-gray-400 sm:text-sm">
-              Fill in all required fields to continue
-            </p>
-          ) : eventCodeStatus === "taken" ? (
+            <p className="mt-3 text-center text-xs text-gray-500 sm:text-sm">Connect your wallet to create events</p>
+          ) : !formData.name || !formData.description || !formData.eventCode || !imageFile ? (
+            <p className="mt-3 text-center text-xs text-gray-400 sm:text-sm">Fill in all required fields to continue</p>
+          ) : eventCodeStatus === 'taken' ? (
             <p className="mt-3 text-center text-xs text-red-600 sm:text-sm">
               ❌ Event code is already taken, please choose another
             </p>
-          ) : eventCodeStatus === "checking" ? (
-            <p className="mt-3 text-center text-xs text-gray-500 sm:text-sm">
-              ⏳ Checking event code availability...
-            </p>
-          ) : eventCodeStatus === "available" ? (
-            <p className="mt-3 text-center text-xs text-green-600 sm:text-sm">
-              ✅ Ready to create your event!
-            </p>
+          ) : eventCodeStatus === 'checking' ? (
+            <p className="mt-3 text-center text-xs text-gray-500 sm:text-sm">⏳ Checking event code availability...</p>
+          ) : eventCodeStatus === 'available' ? (
+            <p className="mt-3 text-center text-xs text-green-600 sm:text-sm">✅ Ready to create your event!</p>
           ) : (
-            <p className="mt-3 text-center text-xs text-gray-400 sm:text-sm">
-              Enter an event code to continue
-            </p>
+            <p className="mt-3 text-center text-xs text-gray-400 sm:text-sm">Enter an event code to continue</p>
           )}
         </div>
       </CardContent>

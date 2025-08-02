@@ -15,7 +15,7 @@ interface NFTMetadata {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as {
+    const body = (await request.json()) as {
       name?: string;
       description?: string;
       imageUrl?: string;
@@ -29,24 +29,24 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!name || !description || !imageUrl) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Missing required fields',
-          message: 'Name, description, and imageUrl are required'
+          message: 'Name, description, and imageUrl are required',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Validate image URL format (should be IPFS URL)
     if (!imageUrl.startsWith('ipfs://')) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Invalid image URL',
-          message: 'Image URL must be an IPFS URL (ipfs://...)'
+          message: 'Image URL must be an IPFS URL (ipfs://...)',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -57,26 +57,26 @@ export async function POST(request: NextRequest) {
       image: imageUrl,
       attributes: [
         {
-          trait_type: "Event Type",
-          value: "ChronoStamp"
+          trait_type: 'Event Type',
+          value: 'ChronoStamp',
         },
         {
-          trait_type: "Event Code",
-          value: eventCode ?? "Unknown"
+          trait_type: 'Event Code',
+          value: eventCode ?? 'Unknown',
         },
         {
-          trait_type: "Organizer",
-          value: organizer ?? "Anonymous"
-        }
-      ]
+          trait_type: 'Organizer',
+          value: organizer ?? 'Anonymous',
+        },
+      ],
     };
 
     // Add event date if provided
     if (eventDate) {
       const dateValue = new Date(eventDate).toISOString().split('T')[0];
       metadata.attributes?.push({
-        trait_type: "Event Date",
-        value: dateValue ?? "Unknown" // YYYY-MM-DD format
+        trait_type: 'Event Date',
+        value: dateValue ?? 'Unknown', // YYYY-MM-DD format
       });
     }
 
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${env.PINATA_JWT}`,
+        Authorization: `Bearer ${env.PINATA_JWT}`,
       },
       body: JSON.stringify({
         pinataContent: metadata,
@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
             eventName: name,
             eventCode: eventCode ?? 'unknown',
             uploaded: new Date().toISOString(),
-          }
-        }
+          },
+        },
       }),
     });
 
@@ -105,16 +105,16 @@ export async function POST(request: NextRequest) {
       const errorText = await pinataResponse.text();
       console.error('Pinata metadata upload failed:', errorText);
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Upload failed',
-          message: 'Failed to upload metadata to IPFS'
+          message: 'Failed to upload metadata to IPFS',
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    const pinataResult = await pinataResponse.json() as { IpfsHash: string };
+    const pinataResult = (await pinataResponse.json()) as { IpfsHash: string };
     const ipfsHash = pinataResult.IpfsHash;
 
     // Log successful upload for verification
@@ -132,16 +132,15 @@ export async function POST(request: NextRequest) {
       },
       message: 'Metadata uploaded successfully to IPFS',
     });
-
   } catch (error) {
     console.error('Metadata upload error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Upload failed',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

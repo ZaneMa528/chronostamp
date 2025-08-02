@@ -1,42 +1,42 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { Button } from "~/components/ui/Button";
+import { useState } from 'react';
+import Link from 'next/link';
+import { Button } from '~/components/ui/Button';
 
 const demoEvents = [
   {
-    id: "event_1753856497592_sl98g29",
-    name: "DevConf 2025",
-    code: "DEVCONF2025",
-    description: "Developer Conference",
-    icon: "👨‍💻",
-    primary: "#7c3aed",
-    secondary: "#a855f7",
-    accent: "#c084fc",
-    background: "#faf5ff",
+    id: 'event_1753856497592_sl98g29',
+    name: 'DevConf 2025',
+    code: 'DEVCONF2025',
+    description: 'Developer Conference',
+    icon: '👨‍💻',
+    primary: '#7c3aed',
+    secondary: '#a855f7',
+    accent: '#c084fc',
+    background: '#faf5ff',
   },
   {
-    id: "event_1753856720946_7b3qhex",
-    name: "Birthday Party",
-    code: "BDAY2025",
-    description: "Private Celebration",
-    icon: "🎂",
-    primary: "#be185d",
-    secondary: "#ec4899",
-    accent: "#f9a8d4",
-    background: "#fdf2f8",
+    id: 'event_1753856720946_7b3qhex',
+    name: 'Birthday Party',
+    code: 'BDAY2025',
+    description: 'Private Celebration',
+    icon: '🎂',
+    primary: '#be185d',
+    secondary: '#ec4899',
+    accent: '#f9a8d4',
+    background: '#fdf2f8',
   },
   {
-    id: "event_1753856858884_ukqfnsy",
-    name: "Graduation",
-    code: "MILESTONE2025",
-    description: "Life Achievement",
-    icon: "🎓",
-    primary: "#166534",
-    secondary: "#22c55e",
-    accent: "#86efac",
-    background: "#f0fdf4",
+    id: 'event_1753856858884_ukqfnsy',
+    name: 'Graduation',
+    code: 'MILESTONE2025',
+    description: 'Life Achievement',
+    icon: '🎓',
+    primary: '#166534',
+    secondary: '#22c55e',
+    accent: '#86efac',
+    background: '#f0fdf4',
   },
 ];
 
@@ -52,7 +52,7 @@ export function DemoSection() {
           className="absolute inset-0 opacity-10"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.3'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: "40px 40px",
+            backgroundSize: '40px 40px',
           }}
         />
       </div>
@@ -62,7 +62,7 @@ export function DemoSection() {
           <h2
             className="mb-3 font-serif text-2xl font-bold text-gray-900 sm:mb-4 sm:text-3xl"
             style={{
-              textShadow: "2px 2px 4px rgba(99, 102, 241, 0.2)",
+              textShadow: '2px 2px 4px rgba(99, 102, 241, 0.2)',
             }}
           >
             Try It Now!
@@ -82,9 +82,9 @@ export function DemoSection() {
                 onMouseLeave={() => setHoveredCard(null)}
               >
                 <div
-                  className={`transform-style-preserve-3d relative h-80 w-full cursor-pointer transition-all duration-700 ${hoveredCard === event.id ? "scale-105 rotate-y-12" : "hover:rotate-y-6"} `}
+                  className={`transform-style-preserve-3d relative h-80 w-full cursor-pointer transition-all duration-700 ${hoveredCard === event.id ? 'scale-105 rotate-y-12' : 'hover:rotate-y-6'} `}
                   style={{
-                    transformStyle: "preserve-3d",
+                    transformStyle: 'preserve-3d',
                   }}
                 >
                   {/* Card Shadow */}
@@ -92,9 +92,7 @@ export function DemoSection() {
                     className="absolute inset-0 translate-y-4 scale-95 transform rounded-lg bg-black opacity-20 blur-xl"
                     style={{
                       transform:
-                        hoveredCard === event.id
-                          ? "translateY(8px) scale(1.02)"
-                          : "translateY(4px) scale(0.95)",
+                        hoveredCard === event.id ? 'translateY(8px) scale(1.02)' : 'translateY(4px) scale(0.95)',
                     }}
                   />
 
@@ -134,17 +132,12 @@ export function DemoSection() {
                             boxShadow: `0 8px 24px ${event.primary}40`,
                           }}
                         >
-                          <span className="text-white drop-shadow-lg">
-                            {event.icon}
-                          </span>
+                          <span className="text-white drop-shadow-lg">{event.icon}</span>
                         </div>
                       </div>
 
                       {/* Event Title */}
-                      <h3
-                        className="mb-2 text-center font-serif text-lg font-bold"
-                        style={{ color: event.primary }}
-                      >
+                      <h3 className="mb-2 text-center font-serif text-lg font-bold" style={{ color: event.primary }}>
                         {event.name.toUpperCase()}
                       </h3>
 
@@ -163,10 +156,7 @@ export function DemoSection() {
                       </div>
 
                       {/* Description */}
-                      <p
-                        className="mb-4 text-center text-sm"
-                        style={{ color: event.secondary }}
-                      >
+                      <p className="mb-4 text-center text-sm" style={{ color: event.secondary }}>
                         {event.description}
                       </p>
 
@@ -179,16 +169,14 @@ export function DemoSection() {
                           style={{
                             borderColor: event.primary,
                             color: event.primary,
-                            backgroundColor: "transparent",
+                            backgroundColor: 'transparent',
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              event.primary;
-                            e.currentTarget.style.color = "white";
+                            e.currentTarget.style.backgroundColor = event.primary;
+                            e.currentTarget.style.color = 'white';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "transparent";
+                            e.currentTarget.style.backgroundColor = 'transparent';
                             e.currentTarget.style.color = event.primary;
                           }}
                         >
@@ -202,7 +190,7 @@ export function DemoSection() {
                           className="h-full w-full bg-repeat"
                           style={{
                             backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${encodeURIComponent(event.primary)}' fill-opacity='1'%3E%3Cpath d='M20 20c0-7.732-6.268-14-14-14s-14 6.268-14 14 6.268 14 14 14 14-6.268 14-14z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                            backgroundSize: "20px 20px",
+                            backgroundSize: '20px 20px',
                           }}
                         />
                       </div>
@@ -249,17 +237,12 @@ export function DemoSection() {
                             boxShadow: `0 8px 24px ${event.primary}40`,
                           }}
                         >
-                          <span className="text-white drop-shadow-lg">
-                            {event.icon}
-                          </span>
+                          <span className="text-white drop-shadow-lg">{event.icon}</span>
                         </div>
                       </div>
 
                       {/* Event Title */}
-                      <h3
-                        className="mb-2 text-center font-serif text-lg font-bold"
-                        style={{ color: event.primary }}
-                      >
+                      <h3 className="mb-2 text-center font-serif text-lg font-bold" style={{ color: event.primary }}>
                         {event.name.toUpperCase()}
                       </h3>
 
@@ -278,10 +261,7 @@ export function DemoSection() {
                       </div>
 
                       {/* Description */}
-                      <p
-                        className="mb-4 text-center text-sm"
-                        style={{ color: event.secondary }}
-                      >
+                      <p className="mb-4 text-center text-sm" style={{ color: event.secondary }}>
                         {event.description}
                       </p>
 
@@ -294,7 +274,7 @@ export function DemoSection() {
                           style={{
                             borderColor: event.primary,
                             color: event.primary,
-                            backgroundColor: "transparent",
+                            backgroundColor: 'transparent',
                           }}
                         >
                           View Details
@@ -307,7 +287,7 @@ export function DemoSection() {
                           className="h-full w-full bg-repeat"
                           style={{
                             backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${encodeURIComponent(event.primary)}' fill-opacity='1'%3E%3Cpath d='M20 20c0-7.732-6.268-14-14-14s-14 6.268-14 14 6.268 14 14 14 14-6.268 14-14z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                            backgroundSize: "20px 20px",
+                            backgroundSize: '20px 20px',
                           }}
                         />
                       </div>
@@ -322,18 +302,17 @@ export function DemoSection() {
         <div
           className="mx-auto max-w-3xl rounded-lg border border-purple-200 p-6 text-center backdrop-blur-sm"
           style={{
-            background: "rgba(250, 245, 255, 0.8)",
-            color: "#4c1d95",
-            boxShadow: "0 8px 32px rgba(139, 92, 246, 0.1)",
+            background: 'rgba(250, 245, 255, 0.8)',
+            color: '#4c1d95',
+            boxShadow: '0 8px 32px rgba(139, 92, 246, 0.1)',
           }}
         >
           <p className="text-sm leading-relaxed">
-            Copy any demo code above and paste it in the claim form to test the
-            experience.
+            Copy any demo code above and paste it in the claim form to test the experience.
             <br className="hidden sm:block" />
             <span className="mt-2 block sm:mt-0 sm:inline">
-              <strong>Note:</strong> When creating real events, you set your own
-              secret codes that are only revealed to attendees at the venue.
+              <strong>Note:</strong> When creating real events, you set your own secret codes that are only revealed to
+              attendees at the venue.
             </span>
           </p>
         </div>
@@ -345,24 +324,12 @@ export function DemoSection() {
         }
 
         .stamp-perforations::before {
-          content: "";
+          content: '';
           position: absolute;
           inset: -2px;
           background:
-            radial-gradient(
-              circle at 6px 6px,
-              transparent 1px,
-              currentColor 1px,
-              currentColor 3px,
-              transparent 3px
-            ),
-            radial-gradient(
-              circle at 6px 6px,
-              transparent 1px,
-              currentColor 1px,
-              currentColor 3px,
-              transparent 3px
-            );
+            radial-gradient(circle at 6px 6px, transparent 1px, currentColor 1px, currentColor 3px, transparent 3px),
+            radial-gradient(circle at 6px 6px, transparent 1px, currentColor 1px, currentColor 3px, transparent 3px);
           background-size: 12px 12px;
           background-position:
             0 0,

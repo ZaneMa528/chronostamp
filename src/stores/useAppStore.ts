@@ -39,14 +39,14 @@ interface AppState {
     isConnected: boolean;
     ownedStamps: ChronoStamp[];
   };
-  
+
   // Events State
   events: {
     list: Event[];
     current: Event | null;
     featured: Event[];
   };
-  
+
   // UI State
   ui: {
     isLoading: boolean;
@@ -54,7 +54,7 @@ interface AppState {
     modalOpen: boolean;
     currentModal: string | null;
   };
-  
+
   // Actions
   setUser: (address: string | null, isConnected: boolean) => void;
   addOwnedStamp: (stamp: ChronoStamp) => void;
@@ -63,7 +63,7 @@ interface AppState {
   setCurrentEvent: (event: Event | null) => void;
   setLoading: (isLoading: boolean, message?: string) => void;
   setModal: (isOpen: boolean, modalType?: string | null) => void;
-  
+
   // Mock Actions
   mockClaimStamp: (eventCode: string, contractAddress: string) => Promise<ChronoStamp>;
   mockCreateEvent: (eventData: Omit<Event, 'id' | 'contractAddress' | 'createdAt' | 'totalClaimed'>) => Promise<Event>;
@@ -77,59 +77,66 @@ export const useAppStore = create<AppState>()(
       isConnected: false,
       ownedStamps: [],
     },
-    
+
     events: {
       list: [],
       current: null,
       featured: [],
     },
-    
+
     ui: {
       isLoading: false,
       loadingMessage: '',
       modalOpen: false,
       currentModal: null,
     },
-    
+
     // Actions
-    setUser: (address, isConnected) => set((state) => ({
-      user: { ...state.user, address, isConnected }
-    })),
-    
-    addOwnedStamp: (stamp) => set((state) => ({
-      user: {
-        ...state.user,
-        ownedStamps: [...state.user.ownedStamps, stamp]
-      }
-    })),
-    
-    setEvents: (events) => set((state) => ({
-      events: { ...state.events, list: events }
-    })),
-    
-    addEvent: (event) => set((state) => ({
-      events: {
-        ...state.events,
-        list: [...state.events.list, event]
-      }
-    })),
-    
-    setCurrentEvent: (event) => set((state) => ({
-      events: { ...state.events, current: event }
-    })),
-    
-    setLoading: (isLoading, message = '') => set((state) => ({
-      ui: { ...state.ui, isLoading, loadingMessage: message }
-    })),
-    
-    setModal: (isOpen, modalType = null) => set((state) => ({
-      ui: { ...state.ui, modalOpen: isOpen, currentModal: modalType }
-    })),
-    
+    setUser: (address, isConnected) =>
+      set((state) => ({
+        user: { ...state.user, address, isConnected },
+      })),
+
+    addOwnedStamp: (stamp) =>
+      set((state) => ({
+        user: {
+          ...state.user,
+          ownedStamps: [...state.user.ownedStamps, stamp],
+        },
+      })),
+
+    setEvents: (events) =>
+      set((state) => ({
+        events: { ...state.events, list: events },
+      })),
+
+    addEvent: (event) =>
+      set((state) => ({
+        events: {
+          ...state.events,
+          list: [...state.events.list, event],
+        },
+      })),
+
+    setCurrentEvent: (event) =>
+      set((state) => ({
+        events: { ...state.events, current: event },
+      })),
+
+    setLoading: (isLoading, message = '') =>
+      set((state) => ({
+        ui: { ...state.ui, isLoading, loadingMessage: message },
+      })),
+
+    setModal: (isOpen, modalType = null) =>
+      set((state) => ({
+        ui: { ...state.ui, modalOpen: isOpen, currentModal: modalType },
+      })),
+
     // Mock Implementation
     mockClaimStamp: async (eventCode: string, _contractAddress: string) => {
       const { events, addOwnedStamp, setEvents } = get();
-      
+
       // Initialize with some mock events if list is empty
       if (events.list.length === 0) {
         const mockEvents: Event[] = [
@@ -171,23 +178,21 @@ export const useAppStore = create<AppState>()(
             eventDate: new Date('2024-06-10'),
             totalClaimed: 234,
             maxSupply: 250,
-          }
+          },
         ];
         setEvents(mockEvents);
       }
-      
+
       // Find event by code (ignore contractAddress parameter for better UX)
-      const event = get().events.list.find(e => 
-        e.eventCode.toLowerCase() === eventCode.toLowerCase()
-      );
-      
+      const event = get().events.list.find((e) => e.eventCode.toLowerCase() === eventCode.toLowerCase());
+
       if (!event) {
         throw new Error(`Event with code "${eventCode}" not found. Try: DEVCONF2024, WEB3SUMMIT, or AIWORKSHOP`);
       }
-      
+
       // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       const stamp: ChronoStamp = {
         id: Date.now(),
         tokenId: Math.floor(Math.random() * 10000),
@@ -199,17 +204,17 @@ export const useAppStore = create<AppState>()(
         eventDate: event.eventDate,
         organizer: event.organizer,
       };
-      
+
       addOwnedStamp(stamp);
       return stamp;
     },
-    
+
     mockCreateEvent: async (eventData) => {
       const { addEvent } = get();
-      
+
       // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
       const event: Event = {
         ...eventData,
         id: Date.now().toString(),
@@ -217,9 +222,9 @@ export const useAppStore = create<AppState>()(
         createdAt: new Date(),
         totalClaimed: 0,
       };
-      
+
       addEvent(event);
       return event;
     },
-  }))
+  })),
 );

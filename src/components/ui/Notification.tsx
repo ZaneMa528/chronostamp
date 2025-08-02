@@ -20,17 +20,10 @@ export interface NotificationProps {
 }
 
 const Notification = forwardRef<HTMLDivElement, NotificationProps>(
-  ({ 
-    type = 'info', 
-    title, 
-    message, 
-    duration = 5000, 
-    onClose,
-    showProgress = true,
-    actions,
-    className,
-    ...props 
-  }, ref) => {
+  (
+    { type = 'info', title, message, duration = 5000, onClose, showProgress = true, actions, className, ...props },
+    ref,
+  ) => {
     const [isVisible, setIsVisible] = useState(false);
     const [progress, setProgress] = useState(100);
 
@@ -49,7 +42,7 @@ const Notification = forwardRef<HTMLDivElement, NotificationProps>(
           const elapsed = Date.now() - startTime;
           const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
           setProgress(remaining);
-          
+
           if (remaining <= 0) {
             clearInterval(interval);
             handleClose();
@@ -64,26 +57,36 @@ const Notification = forwardRef<HTMLDivElement, NotificationProps>(
       switch (type) {
         case 'success':
           return (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           );
         case 'error':
           return (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           );
         case 'warning':
           return (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
             </svg>
           );
         default:
           return (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           );
       }
@@ -126,20 +129,18 @@ const Notification = forwardRef<HTMLDivElement, NotificationProps>(
         className={cn(
           'relative overflow-hidden rounded-xl border shadow-lg backdrop-blur-sm',
           'transition-all duration-300 ease-out',
-          'max-w-sm w-full mx-auto',
+          'mx-auto w-full max-w-sm',
           'sm:max-w-md',
           colors.container,
-          isVisible 
-            ? 'transform translate-y-0 opacity-100 scale-100' 
-            : 'transform translate-y-2 opacity-0 scale-95',
-          className
+          isVisible ? 'translate-y-0 scale-100 transform opacity-100' : 'translate-y-2 scale-95 transform opacity-0',
+          className,
         )}
         {...props}
       >
         {/* Progress bar */}
         {showProgress && duration && duration > 0 && (
           <div className="absolute top-0 left-0 h-1 w-full bg-black/10">
-            <div 
+            <div
               className={cn('h-full transition-all duration-100 ease-linear', colors.progress)}
               style={{ width: `${progress}%` }}
             />
@@ -149,37 +150,28 @@ const Notification = forwardRef<HTMLDivElement, NotificationProps>(
         <div className="p-4">
           <div className="flex items-start gap-3">
             {/* Icon */}
-            <div className={cn(
-              'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center',
-              colors.icon
-            )}>
+            <div className={cn('flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full', colors.icon)}>
               {getIcon()}
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0">
-              {title && (
-                <h4 className="text-sm font-semibold mb-1 leading-tight">
-                  {title}
-                </h4>
-              )}
-              <p className="text-sm leading-relaxed break-words">
-                {message}
-              </p>
+            <div className="min-w-0 flex-1">
+              {title && <h4 className="mb-1 text-sm leading-tight font-semibold">{title}</h4>}
+              <p className="text-sm leading-relaxed break-words">{message}</p>
 
               {/* Actions */}
               {actions && actions.length > 0 && (
-                <div className="flex gap-2 mt-3">
+                <div className="mt-3 flex gap-2">
                   {actions.map((action, index) => (
                     <button
                       key={index}
                       onClick={action.onClick}
                       className={cn(
-                        'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
-                        'focus:outline-none focus:ring-2 focus:ring-offset-1',
+                        'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                        'focus:ring-2 focus:ring-offset-1 focus:outline-none',
                         action.variant === 'outline'
                           ? 'border border-current bg-transparent hover:bg-current/10'
-                          : 'bg-current/10 hover:bg-current/20'
+                          : 'bg-current/10 hover:bg-current/20',
                       )}
                     >
                       {action.label}
@@ -192,10 +184,10 @@ const Notification = forwardRef<HTMLDivElement, NotificationProps>(
             {/* Close button */}
             <button
               onClick={handleClose}
-              className="flex-shrink-0 p-1 rounded-md hover:bg-black/10 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-current"
+              className="flex-shrink-0 rounded-md p-1 transition-colors hover:bg-black/10 focus:ring-2 focus:ring-current focus:ring-offset-1 focus:outline-none"
               aria-label="Close notification"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -203,7 +195,7 @@ const Notification = forwardRef<HTMLDivElement, NotificationProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 Notification.displayName = 'Notification';

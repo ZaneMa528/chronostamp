@@ -19,7 +19,7 @@ export function CreatedEventsTab({ userAddress }: CreatedEventsTabProps) {
     try {
       setIsLoading(true);
       const response = await ApiClient.getUserCreatedEvents(userAddress);
-      
+
       if (response.success && response.data) {
         setCreatedEvents(response.data);
       } else {
@@ -38,27 +38,27 @@ export function CreatedEventsTab({ userAddress }: CreatedEventsTabProps) {
 
   if (isLoading) {
     return (
-      <div className="text-center py-12">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p className="text-gray-600 mt-4">Loading your created events...</p>
+      <div className="py-12 text-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+        <p className="mt-4 text-gray-600">Loading your created events...</p>
       </div>
     );
   }
 
   if (createdEvents.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-          <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="py-12 text-center">
+        <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gray-100">
+          <svg className="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">No Events Created Yet</h3>
-        <p className="text-gray-600 mb-6">Start creating memorable experiences by organizing your first ChronoStamp event</p>
+        <h3 className="mb-2 text-xl font-semibold text-gray-900">No Events Created Yet</h3>
+        <p className="mb-6 text-gray-600">
+          Start creating memorable experiences by organizing your first ChronoStamp event
+        </p>
         <Link href="/create">
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            Create Your First Event
-          </Button>
+          <Button className="bg-blue-600 hover:bg-blue-700">Create Your First Event</Button>
         </Link>
       </div>
     );
@@ -66,25 +66,18 @@ export function CreatedEventsTab({ userAddress }: CreatedEventsTabProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-900">
-          Created Events ({createdEvents.length})
-        </h3>
-        <Button 
-          onClick={loadCreatedEvents} 
-          disabled={isLoading}
-          variant="outline"
-          size="sm"
-        >
+      <div className="mb-6 flex items-center justify-between">
+        <h3 className="text-xl font-semibold text-gray-900">Created Events ({createdEvents.length})</h3>
+        <Button onClick={loadCreatedEvents} disabled={isLoading} variant="outline" size="sm">
           {isLoading ? 'Refreshing...' : 'Refresh'}
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center">
+      <div className="grid grid-cols-1 justify-items-center gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {createdEvents.map((event) => (
-          <EventCard 
-            key={event.id} 
-            event={event} 
+          <EventCard
+            key={event.id}
+            event={event}
             size="md"
             onShare={(url) => {
               void navigator.clipboard.writeText(url);

@@ -5,7 +5,8 @@ export const mockEvents: Event[] = [
   {
     id: '1',
     name: 'DevConf 2024',
-    description: 'The premier developer conference featuring cutting-edge technologies, expert speakers, and networking opportunities for developers worldwide.',
+    description:
+      'The premier developer conference featuring cutting-edge technologies, expert speakers, and networking opportunities for developers worldwide.',
     imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500&h=500&fit=crop',
     contractAddress: '0x1234567890abcdef1234567890abcdef12345678',
     eventCode: 'DEVCONF2024',
@@ -16,9 +17,10 @@ export const mockEvents: Event[] = [
     maxSupply: 500,
   },
   {
-    id: '2', 
+    id: '2',
     name: 'Web3 Summit',
-    description: 'Exploring the future of decentralized web, blockchain technologies, and the evolution of digital ownership and privacy.',
+    description:
+      'Exploring the future of decentralized web, blockchain technologies, and the evolution of digital ownership and privacy.',
     imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&h=500&fit=crop',
     contractAddress: '0x2345678901bcdef12345678901bcdef123456789',
     eventCode: 'WEB3SUMMIT',
@@ -31,7 +33,8 @@ export const mockEvents: Event[] = [
   {
     id: '3',
     name: 'AI Workshop',
-    description: 'Hands-on machine learning workshop covering neural networks, deep learning frameworks, and practical AI implementation strategies.',
+    description:
+      'Hands-on machine learning workshop covering neural networks, deep learning frameworks, and practical AI implementation strategies.',
     imageUrl: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=500&h=500&fit=crop',
     contractAddress: '0x3456789012cdef123456789012cdef1234567890',
     eventCode: 'AIWORKSHOP',

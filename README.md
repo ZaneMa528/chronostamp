@@ -10,6 +10,7 @@ ChronoStamp transforms ephemeral life experiences into permanent, verifiable, an
 
 - **🎯 Event Creation**: Deploy smart contracts and create events with custom metadata
 - **🎟️ NFT Claiming**: Real blockchain-based claiming with signature verification
+- **📍 Location-Based Claiming**: Restrict NFT claims to specific geographic areas with coordinate verification
 - **🖼️ IPFS Integration**: Decentralized storage for artwork and metadata via Pinata
 - **💼 User Profiles**: Personal NFT collections and event management
 - **🔗 Web3 Wallet Support**: Seamless wallet connection with RainbowKit
@@ -42,6 +43,7 @@ This production application combines a modern React frontend with secure serverl
   - Ethers.js v6 for smart contract interactions and dynamic imports
   - RainbowKit + Wagmi for wallet connections and chain management
   - Dynamic contract deployment and interaction
+- **Geolocation Services**: OpenStreetMap Nominatim API for address search and coordinate verification
 - **Styling**: Tailwind CSS v4 with custom components and responsive design
 - **Storage**: IPFS via Pinata with gateway URLs and metadata management
 - **State Management**: Zustand with persistent storage and notifications

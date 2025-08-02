@@ -4,6 +4,7 @@ import { db } from '~/server/db';
 import { events, claims } from '~/server/db/schema';
 import type { ChronoStamp } from '~/stores/useAppStore';
 import { signMessage, generateNonce, validateSignerConfig } from '~/lib/signer';
+import { checkLocationRange, formatLocationError, isValidCoordinates } from '~/lib/location-utils';
 import { env } from '~/env';
 
 // Helper function to format time for multiple timezones
@@ -67,8 +68,10 @@ export async function POST(request: Request) {
       eventCode?: string; 
       userAddress?: string;
       userTimeZone?: string; // Optional: user's timezone for localized error messages
+      userLatitude?: number; // Optional: user's latitude for location verification
+      userLongitude?: number; // Optional: user's longitude for location verification
     };
-    const { eventCode, userAddress, userTimeZone } = body;
+    const { eventCode, userAddress, userTimeZone, userLatitude, userLongitude } = body;
 
     // Validate required fields
     if (!eventCode || !userAddress) {
@@ -156,6 +159,60 @@ export async function POST(request: Request) {
         },
         { status: 410 } // 410 Gone - resource no longer available
       );
+    }
+
+    // Check location restrictions (backward compatible)
+    if (event.locationLatitude !== null && event.locationLongitude !== null) {
+      // Event has location restriction, validate user location
+      if (userLatitude === undefined || userLongitude === undefined) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: 'Location required',
+            message: 'This event requires location verification. Please enable location access to claim your ChronoStamp.'
+          },
+          { status: 400 }
+        );
+      }
+
+      // Validate coordinates
+      if (!isValidCoordinates(userLatitude, userLongitude)) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: 'Invalid location',
+            message: 'Invalid location coordinates provided'
+          },
+          { status: 400 }
+        );
+      }
+
+      // Check if user is within allowed range
+      const eventLocation = {
+        latitude: event.locationLatitude,
+        longitude: event.locationLongitude,
+      };
+      const userLocation = {
+        latitude: userLatitude,
+        longitude: userLongitude,
+      };
+      const allowedRadius = event.locationRadius ?? 4000; // Default to 4km
+
+      const locationCheck = checkLocationRange(userLocation, eventLocation, allowedRadius);
+      
+      if (!locationCheck.isWithinRange) {
+        const locationName = event.locationName ?? 'the event location';
+        const errorMessage = formatLocationError(locationName, allowedRadius, locationCheck.distance);
+        
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: 'Location restricted',
+            message: errorMessage
+          },
+          { status: 403 } // 403 Forbidden - user not in allowed location
+        );
+      }
     }
 
     // Validate event has contract address for on-chain claiming

@@ -23,6 +23,10 @@ export const events = createTable(
     eventDate: d.integer({ mode: "timestamp" }).notNull(),
     claimStartTime: d.integer({ mode: "timestamp" }), // Optional: when claiming opens (null = no restriction)
     claimEndTime: d.integer({ mode: "timestamp" }),   // Optional: when claiming closes (null = no restriction)
+    locationLatitude: d.real(),    // Optional: event latitude (null = no location restriction)
+    locationLongitude: d.real(),   // Optional: event longitude (null = no location restriction)
+    locationRadius: d.integer().default(4000), // Optional: allowed radius in meters (default 4km)
+    locationName: d.text(),        // Optional: human-readable location name for display
     totalClaimed: d.integer().default(0).notNull(),
     maxSupply: d.integer().notNull(),
     createdAt: d

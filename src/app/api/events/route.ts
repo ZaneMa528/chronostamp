@@ -44,6 +44,11 @@ export async function GET(request: Request) {
       eventDate: new Date(event.eventDate),
       totalClaimed: event.totalClaimed,
       maxSupply: event.maxSupply,
+      // Location fields (optional, backward compatible)
+      locationLatitude: event.locationLatitude ?? undefined,
+      locationLongitude: event.locationLongitude ?? undefined,
+      locationRadius: event.locationRadius ?? undefined,
+      locationName: event.locationName ?? undefined,
     }));
 
     return NextResponse.json({
@@ -78,6 +83,10 @@ export async function POST(request: Request) {
       contractAddress?: string;
       claimStartTime?: string;
       claimEndTime?: string;
+      locationLatitude?: number;
+      locationLongitude?: number;
+      locationRadius?: number;
+      locationName?: string;
     };
     const {
       name,
@@ -91,6 +100,10 @@ export async function POST(request: Request) {
       contractAddress,
       claimStartTime,
       claimEndTime,
+      locationLatitude,
+      locationLongitude,
+      locationRadius,
+      locationName,
     } = body;
 
     // Validate required fields
@@ -146,6 +159,11 @@ export async function POST(request: Request) {
       eventDate: new Date(eventDate ?? Date.now() + 30 * 24 * 60 * 60 * 1000), // Default to 30 days from now
       claimStartTime: claimStartTime ? new Date(claimStartTime) : null, // Optional: null = no restriction
       claimEndTime: claimEndTime ? new Date(claimEndTime) : null,       // Optional: null = no restriction
+      // Location fields (optional, backward compatible)
+      locationLatitude: locationLatitude ?? null,
+      locationLongitude: locationLongitude ?? null,  
+      locationRadius: locationRadius ?? null,
+      locationName: locationName ?? null,
       totalClaimed: 0,
       maxSupply: maxSupply ?? 1000, // Default max supply
     };
@@ -174,6 +192,11 @@ export async function POST(request: Request) {
       eventDate: new Date(createdEvent.eventDate),
       totalClaimed: createdEvent.totalClaimed,
       maxSupply: createdEvent.maxSupply,
+      // Location fields (optional, backward compatible)
+      locationLatitude: createdEvent.locationLatitude ?? undefined,
+      locationLongitude: createdEvent.locationLongitude ?? undefined,
+      locationRadius: createdEvent.locationRadius ?? undefined,
+      locationName: createdEvent.locationName ?? undefined,
     };
 
     return NextResponse.json({
